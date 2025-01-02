@@ -10,7 +10,21 @@ export default function Home() {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (localStorage.getItem("token")) {
-                window.location.href = "/home";
+                switch(parseInt(localStorage.getItem("type"))){
+                    case 3:
+                        window.location.href = "/super_admin";
+                        break;
+                    case 2:
+                        window.location.href = "/admin";
+                        break;
+                    case 1:
+                        window.location.href = "/teacher";
+                        break;
+                    case 0:
+                        window.location.href = "/student";
+                        break;
+                    
+                }
             }
         }
     }, []);
@@ -36,7 +50,23 @@ export default function Home() {
             .then((response) => {
                 toast.success("Logged In!");
                 localStorage.setItem("token", response.data.token);
-                window.location.href = response.data.user.type === 0 ? "/admin" : "/home";
+                
+                localStorage.setItem("type", response.data.user.type);
+                switch(response.data.user.type){
+                    case 3:
+                        window.location.href = "/super_admin";
+                        break;
+                    case 2:
+                        window.location.href = "/admin";
+                        break;
+                    case 1:
+                        window.location.href = "/teacher";
+                        break;
+                    case 0:
+                        window.location.href = "/student";
+                        break;
+                    
+                }
             })
             .catch((error) => {
                 toast.error("Something went wrong!");

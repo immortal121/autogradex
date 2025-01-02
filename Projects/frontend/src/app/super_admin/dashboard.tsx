@@ -7,9 +7,6 @@ import { appName } from '@/utils/utils';
 import React, { useContext, useEffect, useState } from 'react';
 import { FiArrowLeft, FiCreditCard, FiDollarSign, FiHelpCircle, FiHome, FiLogOut, FiMoreHorizontal, FiShoppingCart, FiUser, FiUsers } from "react-icons/fi";
 import { Context, MainContext } from '@/context/context';
-import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
-import SpaceDashboardOutlinedIcon from '@mui/icons-material/SpaceDashboardOutlined';
-import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
 
 export default function Home({
   children,
@@ -36,8 +33,8 @@ export default function Home({
           case 1:
               window.location.href = "/teacher";
               break;
-          case 3:
-              window.location.href = "/super_admin";
+          case 2:
+              window.location.href = "/admin";
               break;
           case 0:
               window.location.href = "/student";
@@ -62,12 +59,15 @@ export default function Home({
           </div>
         </div>
         <div className='p-0 my-2 h-full w-full overflow-hidden hover:overflow-y-auto'>
-          <Link href="/admin/dashboard"><label className={(!pathName.includes("/admin/dashboard") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><SpaceDashboardOutlinedIcon fontSize='small'/> Dashboard</label></Link>
-          <Link href="/admin/teacher"><label className={(!pathName.includes("/admin/teacher") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><SchoolOutlinedIcon fontSize='small'/> Teachers</label></Link>
-          <Link href="/admin/student"><label className={(!pathName.includes("/admin/student") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><PeopleOutlineOutlinedIcon /> Students</label></Link>
+          <Link href="/admin/dashboard"><label className={(!pathName.includes("/admin/dashboard") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><FiHome /> Dashboard</label></Link>
+          <Link href="/admin/shop"><label className={(!pathName.includes("/admin/shop") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><FiShoppingCart /> Shop</label></Link>
+          <Link href="/admin/purchases"><label className={(!pathName.includes("/admin/purchases") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><FiDollarSign /> Purchases</label></Link>
+          <Link href="/admin/payment_methods"><label className={(!pathName.includes("/admin/payment_methods") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><FiCreditCard /> Payment methods</label></Link>
+          <Link href="/admin/faq"><label className={(!pathName.includes("/admin/faq") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><FiHelpCircle /> FAQ</label></Link>
+          <Link href="/admin/users"><label className={(!pathName.includes("/admin/users") ? "btn-ghost " : "") + 'btn w-full justify-start normal-case'} onClick={() => { }}><FiUsers /> Users</label></Link>
         </div>
         <hr />
-        {/* <Link href="/home"><label className='btn mb-2 mt-4 w-full'><FiArrowLeft /> USER HOME</label></Link> */}
+        <Link href="/home"><label className='btn mb-2 mt-4 w-full'><FiArrowLeft /> USER HOME</label></Link>
         <div tabIndex={0} className='cursor-pointer dropdown dropdown-top flex items-center hover:bg-base-200 p-2 rounded-lg'>
           <div className='flex items-center justify-between w-full'>
             <div className='flex items-center'>

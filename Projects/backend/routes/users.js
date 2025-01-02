@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Organization from "../models/Organization.js";
 import { validate } from "../middlewares/validate.js";
 import { logoBase64 } from "../utils/utils.js";
 import dotenv from "dotenv";
@@ -24,6 +25,8 @@ router.post("/signup", async (req, res) => {
         name: joi.string().min(3).required(),
         email: joi.string().min(6).required().email(),
         password: joi.string().min(6).required(),
+        organizationName: joi.string().min(5).required(),
+        userRole: joi.number().required().valid(0, 1, 2),
     });
 
     try {
@@ -36,11 +39,26 @@ router.post("/signup", async (req, res) => {
 
         const users = await User.find();
 
+        let existingOrganization;
+
+        if (data.userRole === 2) { // admin
+            // Create a new organization if admin
+            existingOrganization = new Organization({ name: data.organizationName });
+            await existingOrganization.save();
+        } else {
+            // Find the default organization for teachers and students (if one exists)JavaScript
+            existingOrganization = await Organization.findOne({ name: data.organizationName });
+        }
+        if (!existingOrganization) {
+            return res.status(400).send("No default organization found for non-admin users.");
+        }
+
         const newUser = new User({
             name: data.name,
             email: data.email,
             password: hashedPassword,
-            type: users.length == 0 ? 0 : 1,
+            type: data.userRole,
+            organization: existingOrganization._id,
         });
 
         const savedUser = await newUser.save();
@@ -82,6 +100,17 @@ router.post("/login", async (req, res) => {
         return res.send({ user: user, token: token });
     } catch (err) {
         return res.status(500).send(err);
+    }
+});
+
+
+
+router.get('/organizations', async (req, res) => {
+    try {
+        const organizations = await Organization.find();
+        res.status(200).json(organizations);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve organizations' });
     }
 });
 

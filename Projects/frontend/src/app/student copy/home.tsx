@@ -78,6 +78,19 @@ export default function Home({
     if (typeof window !== 'undefined') {
       if (!localStorage.getItem("token")) {
         window.location.href = "/login";
+      }else{
+        getEvaluators();
+        switch(parseInt(localStorage.getItem("type"))){
+          case 3:
+              window.location.href = "/super_admin";
+              break;
+          case 2:
+              window.location.href = "/admin";
+              break;
+          case 0:
+              window.location.href = "/student";
+              break;                
+      }  
       }
     }
   }, []);
@@ -189,7 +202,7 @@ export default function Home({
           <p className="flex items-center text-sm mb-2"><FiSettings className="mr-1" /> {limits?.evaluatorLimit} evaluators left</p>
           <Link href="/shop"><button className="btn btn-xs"><FiShoppingCart /> SHOP</button></Link>
         </div>
-        {user?.type === 0 ? <Link href="/admin/dashboard"><label className='btn mb-2 w-full'><FiUser /> ADMIN PANEL <FiArrowRight /></label></Link> : ""}
+        {user?.type === 3 ? <Link href="/admin/dashboard"><label className='btn mb-2 w-full'><FiUser /> ADMIN PANEL <FiArrowRight /></label></Link> : ""}
         <div tabIndex={0} className='cursor-pointer dropdown dropdown-top flex items-center hover:bg-base-200 p-2 rounded-lg'>
           <div className='flex items-center justify-between w-full'>
             <div className='flex items-center'>

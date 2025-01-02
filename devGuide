@@ -1,0 +1,116 @@
+# users : admin ( oraganization ), teacher (work at oraganization), student ( study at organization ) 
+    and super_admin ( project owner)
+# admin create organization account
+    1 . admin create teachers and their login account
+    2 . admin can create classes and sections
+    3 . admin can add subjects to classes,sections and add multiple teacher to sections,classes
+    4 . teachers and admin can add students  and their login account
+    5 . teacher can select class and section to create tests with question and answer sheet
+    6 . teacher can select class and section to upload answer sheets and evaluate them
+
+Backend (Node.js with Express.js)
+
+Project Structure:
+
+models/:
+Organization.js
+User.js (inherits from User)
+Admin.js
+Teacher.js
+Student.js
+SuperAdmin.js
+Class.js
+Section.js
+Subject.js
+Test.js
+Question.js
+AnswerSheet.js
+routes/:
+organizationRoutes.js
+userRoutes.js
+classRoutes.js
+sectionRoutes.js
+subjectRoutes.js
+testRoutes.js
+answerSheetRoutes.js
+controllers/:
+organizationController.js
+userController.js
+classController.js
+sectionController.js
+subjectController.js
+testController.js
+answerSheetController.js
+middleware/:
+authMiddleware.js (for authentication and authorization)
+database/:
+db.js (connection to database - MongoDB, PostgreSQL, etc.)
+utils/:
+helpers.js (for utility functions like password hashing, email sending)
+Development Steps:
+
+Setup:
+Project initialization
+Database setup and connection
+Basic user authentication and authorization middleware
+Organization Module:
+Create Organization model
+Implement admin routes for organization creation
+User Management:
+Create User model with inheritance for different roles
+Implement user registration, login, and profile management
+Class and Section Management:
+Create Class and Section models
+Implement admin routes for class and section creation
+Subject Management:
+Create Subject model
+Implement routes for adding subjects to classes and sections
+Implement logic for assigning multiple teachers to classes/sections
+Student Management:
+Implement routes for adding students to classes and sections
+Test Management:
+Create Test, Question, and AnswerSheet models
+Implement teacher routes for test creation, question addition, and answer sheet uploads
+Evaluation:
+Implement teacher routes for answer sheet evaluation and grading
+Frontend Integration:
+Connect backend API endpoints with the frontend
+Frontend (Next.js with App Router)
+
+Project Structure:
+
+app/:
+layout.js (global layout)
+login.js
+dashboard/:
+page.js (dashboard overview)
+admin/:
+page.js (admin dashboard)
+organizations/:
+page.js (organization management)
+[id]/:
+page.js (specific organization details)
+classes/:
+page.js (class management)
+[id]/:
+page.js (specific class details)
+sections/:
+page.js (section management)
+[id]/:
+page.js (specific section details)
+students/:
+page.js (student management)
+tests/:
+page.js (test management)
+[id]/:
+page.js (specific test details)
+questions/:
+page.js (question management)
+answerSheets/:
+page.js (answer sheet management)
+teacher/:
+page.js (teacher dashboard)
+// Similar structure as admin for relevant features
+student/:
+page.js (student dashboard)
+// Relevant features for students (view tests, submit answers)
