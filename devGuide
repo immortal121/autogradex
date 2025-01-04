@@ -8,6 +8,24 @@
     5 . teacher can select class and section to create tests with question and answer sheet
     6 . teacher can select class and section to upload answer sheets and evaluate them
 
+# admin tasks
+
+1. add classes and sections
+2. add student with class and section
+3. add teacher to class and section
+
+# teacher tasks
+
+1. add student with class and section
+2. Assignment 
+    * create assignment for a class and section
+    * upload sheets
+    * evalute completed assignment
+    * export marksheet
+
+3. student tasks
+    * view assignments results
+
 Backend (Node.js with Express.js)
 
 Project Structure:

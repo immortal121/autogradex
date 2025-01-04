@@ -1,11 +1,8 @@
 "use client";
 import axios from 'axios';
-import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import { currencySymbol, serverURL } from "@/utils/utils";
-import { FiCreditCard, FiDollarSign, FiHome, FiShoppingCart, FiUsers } from 'react-icons/fi';
-import { Breadcrumbs } from '@mui/material';
-
+import { serverURL } from "@/utils/utils";
+import {HomeOutlined} from '@mui/icons-material';
 export default function Page() {
     const adminPath = "/admin";
     type DashboardData = {
@@ -37,12 +34,6 @@ export default function Page() {
     }, []);
 
     return <div className='animate-fade-in-bottom w-full h-full p-4'>
-        <Breadcrumbs separator=">" maxItems={2} aria-label="breadcrumb">
-            <Link href="#">
-                Dashboard
-            </Link>
-        </Breadcrumbs>
-        <p className='font-semibold text-xl flex items-center mb-5'><FiHome className='mr-2' /> Admin Dashboard</p>
-
+        <p className='font-semibold text-xl flex items-center mb-5'><HomeOutlined className='mr-2' /> Admin Dashboard</p>
     </div>
 }

@@ -11,8 +11,7 @@ export default function Home() {
 
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-  const [organizationName, setOrganizationName] = useState<string>("Organization 1");
-  const [userRole, setUserRole] = useState<number>(0); // Default to student
+  const [organizationName, setOrganizationName] = useState<string>("Lovely Professional University");
   const [organizations, setOrganizations] = useState([]);
 
   const [password, setPassword] = useState<string>("");
@@ -22,35 +21,24 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       if (localStorage.getItem("token")) {
         switch(parseInt(localStorage.getItem("type"))){
-          case 3:
+          case 0:
               window.location.href = "/super_admin";
               break;
-          case 2:
+          case 1:
               window.location.href = "/admin";
               break;
-          case 1:
+          case 2:
               window.location.href = "/teacher";
               break;
-          case 0:
+          case 3:
               window.location.href = "/student";
               break;
           
       }
       }
     }
+  });
 
-
-    const fetchOrganizations = async () => {
-      try {
-        const response = await axios.get(`${serverURL}/users/organizations`);
-        setOrganizations(response.data);
-      } catch (error) {
-        console.error('Error fetching organizations:', error);
-      }
-    };
-
-    fetchOrganizations();
-  }, []);
 
   //   const [verificationCodeSent, setVerificationCodeSent] = useState<boolean>(false);
   //   const [verificationCode, setVerificationCode] = useState<string>("");
@@ -140,7 +128,6 @@ export default function Home() {
         "name": name,
         "email": email,
         "password": password,
-        "userRole": userRole,
         "organizationName": organizationName,
       }
     };
@@ -175,37 +162,12 @@ export default function Home() {
         <input className="input input-bordered mb-5 max-w-xs" placeholder="Email" type="text" onChange={(x) => setEmail(x.target.value)} value={email} />
         <p className="text-sm mb-1">Password</p>
         <input className="input input-bordered mb-5 max-w-xs" placeholder="Password" type="password" onChange={(x) => setPassword(x.target.value)} value={password} />
-        <p className="text-sm mb-1">User Role</p>
-        <select className="input input-bordered mb-5 max-w-xs" value={userRole} onChange={(e) => setUserRole(parseInt(e.target.value))}>
-          <option value="2">Admin</option>
-          <option value="1">Teacher</option>
-          <option value="0">Student</option>
-        </select>
-        {userRole === 2 && (
-          <div>
+        
+        <div>
             <p className="text-sm mb-1">Organization Name</p>
             <input className="input input-bordered mb-5 max-w-xs" placeholder="Organization Name" type="text" onChange={(x) => setOrganizationName(x.target.value)} value={organizationName} />
-          </div>
-        )}
-        {userRole !== 2 && (
-          <div>
-            <p className="text-sm mb-1">Organization Name</p>
-            {/* Replace with your actual organization options */}
-            <select
-            className="input input-bordered mb-5 max-w-xs"
-              id="organization"
-              value={organizationName}
-              onChange={(x) => setOrganizationName(x.target.value)} 
-            >
-              <option value="">Select Organization</option>
-              {organizations.map((org) => (
-                <option key={org._id} value={org.name}>
-                  {org.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        </div>
+        
         {/* {verificationCodeSent && (
           <div className="flex flex-col">
             <p className="text-sm mb-1">Verification Code</p>

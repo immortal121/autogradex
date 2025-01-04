@@ -5,7 +5,7 @@ import { MainContext } from "@/context/context";
 import { appName } from "@/utils/utils";
 import { FaFileImport } from "react-icons/fa";
 import { TbFileImport } from "react-icons/tb";
-
+import { SchoolOutlined } from '@mui/icons-material';
 export default function Classes() {
     const {
         setSelectedEvaluator,
@@ -30,24 +30,13 @@ export default function Classes() {
     const [search, setSearch] = useState("");
 
     return (<div className="animate-fade-in-bottom flex flex-col w-full max-w-[50vw] max-sm:max-w-none">
-        <div className="hidden max-sm:flex justify-end mb-3">
-            <button className="btn btn-square" onClick={() => setSelectedEvaluator(-1)}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-        </div>
+        
         <div className="flex items-center justify-between mb-1 mt-4 w-full max-w-lg">
-            <p className="flex items-center font-semibold text-xl"><FiBook className="mr-2" /> {classes[selectedClass]?.subject} <FiUsers className="ml-5 mr-2" /> {classes[selectedClass]?.name} {classes[selectedClass]?.section}</p>
+            <p className="flex items-center font-semibold text-xl"><SchoolOutlined className="mr-2" /> Teachers</p>
         </div>
         <div className="print flex mt-5">
-            <label htmlFor="newstudent_modal" className="btn btn-primary mr-2" onClick={() => setNewStudentRollNo(students.length + 1)}>+ New Student</label>
-            <label htmlFor="uploadCSVFile" className="btn rounded-r-none"><TbFileImport /> Import Students<input
-                id="uploadCSVFile"
-                type="file"
-                accept=".csv"
-                onChange={handleStudentFileChange}
-                className="hidden"
-            /></label>
-            <div className="tooltip" data-tip="Help"><label htmlFor="help_modal" className="btn btn-square mr-2 rounded-l-none"><FiHelpCircle /></label></div>
+            <label htmlFor="newteacher_modal" className="btn btn-primary mr-2" onClick={() => setNewStudentRollNo(students.length + 1)}>+ New Teacher</label>
+            
             {students.length > 0 ?
                 <div className="flex items-center w-full justify-between">
                     <button className='btn mr-2' onClick={() => {
@@ -78,8 +67,10 @@ export default function Classes() {
                 {/* head */}
                 <thead>
                     <tr>
-                        <th>RollNo</th>
+                        <th>ID</th>
                         <th>Name</th>
+                        <th>Class</th>
+                        <th>Section</th>
                         <th className="print">Edit</th>
                         <th className="print">Delete</th>
                     </tr>
@@ -91,6 +82,8 @@ export default function Classes() {
                             (
                                 <tr key={i}>
                                     <th>{student?.rollNo}</th>
+                                    <td>{student?.name}</td>
+                                    <td>{student?.name}</td>
                                     <td>{student?.name}</td>
                                     <td className="print"><label htmlFor="editstudent_modal" className="btn btn-square" onClick={() => {
                                         setEditStudentRollNo(student.rollNo);
@@ -104,7 +97,7 @@ export default function Classes() {
             </table>
         </div>
         {/* New Student Modal */}
-        <input type="checkbox" id="newstudent_modal" className="modal-toggle" />
+        <input type="checkbox" id="newteacher_modal" className="modal-toggle" />
         <div className="modal" role="dialog">
             <div className="modal-box">
                 <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> New Student</h3>
@@ -124,7 +117,7 @@ export default function Classes() {
         <div className="modal">
             <div className="modal-box">
                 <h3 className="flex items-center font-bold text-lg"><FiTrash className="mr-1" /> Delete Student</h3>
-                <p className="py-4">Are you sure want to delete this student?</p>
+                <p className="py-4">Are you sure want to delete this teacher?</p>
                 <div className="modal-action">
                     <label htmlFor="deletestudent_modal" className="btn">Cancel</label>
                     <label htmlFor="deletestudent_modal" className="btn btn-error" onClick={() => deleteStudent()}>Delete</label>
@@ -148,18 +141,7 @@ export default function Classes() {
             </div>
             <label className="modal-backdrop" htmlFor="editstudent_modal">Cancel</label>
         </div>
-        {/* Import Help */}
-        <input type="checkbox" id="help_modal" className="modal-toggle" />
-        <div className="modal">
-            <div className="modal-box">
-                <h3 className="flex items-center font-bold text-lg"><TbFileImport className="mr-1" /> Import Students</h3>
-                <p className="py-4">Create a CSV file with the following columns: <br />RollNo, Name<br />  Then import the file to add students.</p>
-                <div className="modal-action">
-                    <label htmlFor="help_modal" className="btn">OK</label>
-                </div>
-            </div>
-            <label className="modal-backdrop" htmlFor="help_modal">Cancel</label>
-        </div>
+       
     </div>
     );
 }

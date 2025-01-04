@@ -1,10 +1,10 @@
 // SidebarItem.js
 
 import React, { useState } from 'react';
-import { FiChevronDown, FiChevronRight,FiAirplay } from 'react-icons/fi';
+import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import Link from 'next/link';
 
-const SidebarItem = ({ label, isActive, children }) => {
+const SidebarItem = ({ label, children, icon }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = () => {
@@ -12,13 +12,15 @@ const SidebarItem = ({ label, isActive, children }) => {
   };
 
   return (
-    <div className="p-0 my-2 w-full overflow-hidden hover:overflow-y-auto dropdown dropdown-top">
-      <label 
-        tabIndex={0} 
-        className={`btn w-full justify-between normal-case flex items-center ${!isActive ? 'btn-ghost' : ''}`} 
+    <div className="p-0 w-full overflow-hidden hover:overflow-y-auto dropdown dropdown-top">
+      <label
+        tabIndex={0}
+        className={`btn w-full justify-between normal-case flex items-center ${!isOpen ? 'btn-ghost' : ''}`}
         onClick={handleClick}
       >
-        {label}
+        <span>
+        {icon && <span className="mr-2">{icon}</span>} 
+        {label}</span>
         <span className="ml-1">{isOpen ? <FiChevronDown /> : <FiChevronRight />}</span> 
       </label>
       {isOpen && (
@@ -30,10 +32,14 @@ const SidebarItem = ({ label, isActive, children }) => {
   );
 };
 
-const SubSidebarItem = ({ href, label }) => {
+const SubSidebarItem = ({ href, label, icon}) => {
   return (
-    <Link href={href}><label className='btn w-full mt-2 justify-start normal-case'><FiAirplay /> {label}</label></Link>          
-    
+    <Link href={href}>
+      <label className='btn w-full mt-2 justify-start normal-case'>
+        {icon && <span className="mr-2">{icon}</span>} 
+        {label}
+      </label>
+    </Link>
   );
 };
 

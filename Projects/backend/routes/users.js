@@ -26,50 +26,47 @@ router.post("/signup", async (req, res) => {
         email: joi.string().min(6).required().email(),
         password: joi.string().min(6).required(),
         organizationName: joi.string().min(5).required(),
-        userRole: joi.number().required().valid(0, 1, 2),
     });
+
 
     try {
         const data = await schema.validateAsync(req.body);
-
         if (await User.findOne({ email: data.email }))
             return res.status(400).send("Email already exists");
+        let existingOrganization;
+
+        existingOrganization = await Organization.findOne({ name: data.organizationName });
+        
+        
+        if (existingOrganization)
+            return res.status(400).send("Organization Already Exists");
 
         const hashedPassword = await bcrypt.hash(data.password, 10);
 
         const users = await User.find();
 
-        let existingOrganization;
+        existingOrganization = new Organization({ name: data.organizationName });
+        await existingOrganization.save();
 
-        if (data.userRole === 2) { // admin
-            // Create a new organization if admin
-            existingOrganization = new Organization({ name: data.organizationName });
-            await existingOrganization.save();
-        } else {
-            // Find the default organization for teachers and students (if one exists)JavaScript
-            existingOrganization = await Organization.findOne({ name: data.organizationName });
-        }
-        if (!existingOrganization) {
-            return res.status(400).send("No default organization found for non-admin users.");
-        }
+        
 
         const newUser = new User({
             name: data.name,
             email: data.email,
             password: hashedPassword,
-            type: data.userRole,
+            type: 1,
             organization: existingOrganization._id,
         });
 
         const savedUser = await newUser.save();
 
-        const newLimits = new Limits({
-            userId: savedUser._id,
-            evaluatorLimit: 2,
-            evaluationLimit: 5,
-        });
+        // const newLimits = new Limits({
+        //     userId: savedUser._id,
+        //     evaluatorLimit: 2,
+        //     evaluationLimit: 5,
+        // });
 
-        await newLimits.save();
+        // await newLimits.save();
 
         return res.send(savedUser);
     } catch (err) {

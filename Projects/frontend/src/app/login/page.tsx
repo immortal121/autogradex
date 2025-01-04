@@ -53,16 +53,16 @@ export default function Home() {
                 
                 localStorage.setItem("type", response.data.user.type);
                 switch(response.data.user.type){
-                    case 3:
+                    case 0:
                         window.location.href = "/super_admin";
                         break;
-                    case 2:
+                    case 1:
                         window.location.href = "/admin";
                         break;
-                    case 1:
+                    case 2:
                         window.location.href = "/teacher";
                         break;
-                    case 0:
+                    case 3:
                         window.location.href = "/student";
                         break;
                     
