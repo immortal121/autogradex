@@ -1,255 +1,555 @@
 import joi from "joi";
 import express from "express";
 import Class from "../models/Class.js";
+import Section from "../models/Section.js";
+import Subject from "../models/Subject.js";
 import { validate } from "../middlewares/validate.js";
 
 const router = express.Router();
 
-router.get("/", validate, async (req, res) => {
-    return res.send((await Class.find({ createdBy: req.user._id })).reverse());
+
+//section
+
+router.get("/sections", validate, async (req, res) => {
+    return res.send((await Section.find({ organization: req.user.organization })).reverse());
 });
 
-router.post("/create", validate, async (req, res) => {
+
+router.post("/createSection", validate, async (req, res) => {
     const schema = joi.object({
         name: joi.string().required(),
-        section: joi.string().required(),
-        subject: joi.string().required(),
+        description: joi.string().required(),
     });
 
     try {
         const data = await schema.validateAsync(req.body);
 
+        const sectionExists = await Section.findOne({ name: data.name });
+
+        if (sectionExists) {
+            return res.status(400).send("Already Section Exists");
+        }
+
+
+        const newSection = new Section({
+            name: data.name,
+            description: data.description,
+            organization: req.user.organization,
+            createdBy: req.user._id,
+        });
+
+        await newSection.save();
+
+        return res.send(newSection);
+    }
+    catch (err) {
+        return res.status(500).send(err);
+    }
+});
+
+
+router.post("/deleteSection", validate, async (req, res) => {
+    const schema = joi.object({
+        sectionId: joi.string().required(),
+    });
+
+    try {
+        const data = await schema.validateAsync(req.body);
+
+        const sectionExists = await Section.findOne({ _id: data.sectionId });
+
+        if (!sectionExists) {
+            return res.status(400).send("No Section Exists to Delete");
+        }
+
+        await Section.findByIdAndDelete(data.sectionId);
+
+
+        return res.send("section deleted successfully");
+    }
+    catch (err) {
+        return res.status(500).send(err);
+    }
+});
+
+router.post("/updateSection", validate, async (req, res) => {
+    const schema = joi.object({
+        sectionId: joi.string().required(),
+        name: joi.string().required(),
+        description: joi.string().required(),
+    });
+
+    try {
+        const data = await schema.validateAsync(req.body);
+
+        const _section = await Section.findById(data.sectionId);
+
+        _section.name = data.name;
+        _section.description = data.description;
+
+        await _section.save();
+
+        return res.send(_section);
+    }
+    catch (err) {
+        return res.status(500).send(err);
+    }
+});
+
+
+
+// subjects
+router.get("/subjects", validate, async (req, res) => {
+    return res.send((await Subject.find({ organization: req.user.organization })).reverse());
+});
+
+
+router.post("/createSubject", validate, async (req, res) => {
+    const schema = joi.object({
+        name: joi.string().required(),
+        description: joi.string().required(),
+    });
+
+    try {
+        const data = await schema.validateAsync(req.body);
+
+        const subjectExists = await Subject.findOne({ name: data.name });
+
+        if (subjectExists) {
+            return res.status(400).send("Already Subject Exists");
+        }
+
+
+        const newSubject = new Subject({
+            name: data.name,
+            description: data.description,
+            organization: req.user.organization,
+            createdBy: req.user._id,
+        });
+
+        await newSubject.save();
+
+        return res.send(newSubject);
+    }
+    catch (err) {
+        return res.status(500).send(err);
+    }
+});
+
+
+router.post("/deleteSubject", validate, async (req, res) => {
+    const schema = joi.object({
+        subjectId: joi.string().required(),
+    });
+
+    try {
+        const data = await schema.validateAsync(req.body);
+        const subjectExists = await Subject.findOne({ _id: data.subjectId });
+        if (!subjectExists) {
+            return res.status(400).send("No Subject Exists to Delete");
+        }
+
+        await Subject.findByIdAndDelete(data.subjectId);
+
+
+        return res.send("Subject deleted successfully");
+    }
+    catch (err) {
+        return res.status(500).send(err);
+    }
+});
+
+router.post("/updateSubject", validate, async (req, res) => {
+    const schema = joi.object({
+        subjectId: joi.string().required(),
+        name: joi.string().required(),
+        description: joi.string().required(),
+    });
+
+    try {
+        const data = await schema.validateAsync(req.body);
+
+        const _subject = await Subject.findById(data.subjectId);
+
+        _subject.name = data.name;
+        _subject.description = data.description;
+
+        await _subject.save();
+
+        return res.send(_subject);
+    }
+    catch (err) {
+        return res.status(500).send(err);
+    }
+});
+
+
+// class
+router.get("/", validate, async (req, res) => {
+    return res.send((await Class.find({ createdBy: req.user.organization })).reverse());
+});
+
+router.post("/createClass", validate, async (req, res) => {
+    const schema = joi.object({
+        name: joi.string().required(),
+        subjects: joi.array().items(joi.string().required()).required(),
+        sections: joi.array().items(joi.string().required()).required(),
+        students: joi.array().items(joi.string().required()).optional(),
+    });
+
+    try {
+        const data = await schema.validateAsync(req.body);
+
+        const classExists = await Class.findOne({ name: data.name });
+
+        if (classExists) {
+            return res.status(400).send("Class Already Exists");
+        }
+
         const newClass = new Class({
             name: data.name,
-            section: data.section,
-            subject: data.subject,
-            students: [],
+            subjects: data.subjects,
+            sections: data.sections || [],
+            students: data.students || [],
+            organization: req.user.organization,
             createdBy: req.user._id,
         });
 
         await newClass.save();
 
-        return res.send(newClass);
+        return res.status(201).send(newClass); // Send 201 Created status
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send("Error creating class");
     }
-    catch (err) {
-        return res.status(500).send(err);
+});
+router.post("/updateClass", validate, async (req, res) => {
+    const schema = joi.object({
+        name: joi.string().optional(),
+        subjects: joi.array().items(joi.string().required()).optional(),
+        sections: joi.array().items(joi.string().required()).optional(),
+        students: joi.array().items(joi.string().required()).optional(),
+    });
+
+    try {
+        const data = await schema.validateAsync(req.body);
+        const classId = req.params.classId;
+
+        const updatedClass = await Class.findByIdAndUpdate(
+            classId,
+            {
+                $set: {
+                    name: data.name || undefined,
+                    subjects: data.subjects || undefined,
+                    sections: data.sections || undefined,
+                    students: data.students || undefined
+                }
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedClass) {
+            return res.status(404).send("Class not found");
+        }
+
+        return res.send(updatedClass);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send("Error updating class");
     }
 });
 
-router.post("/delete", validate, async (req, res) => {
+router.delete("/deleteClass", validate, async (req, res) => {
     const schema = joi.object({
         classId: joi.string().required(),
     });
 
     try {
         const data = await schema.validateAsync(req.body);
+        const classId = data.classId;
 
-        const _class = await Class.findById(data.classId);
+        const deletedClass = await Class.findByIdAndDelete(classId);
 
-        if (_class.createdBy.toString() != req.user._id.toString()) {
-            return res.status(400).send("You are not authorized to delete this class");
+        if (!deletedClass) {
+            return res.status(404).send("Class not found");
         }
-
-        await Class.findByIdAndDelete(data.classId);
 
         return res.send("Class deleted successfully");
-    }
-    catch (err) {
-        return res.status(500).send(err);
-    }
-});
-
-router.post("/update", validate, async (req, res) => {
-    const schema = joi.object({
-        classId: joi.string().required(),
-        name: joi.string().required(),
-        section: joi.string().required(),
-        subject: joi.string().required(),
-    });
-
-    try {
-        const data = await schema.validateAsync(req.body);
-
-        const _class = await Class.findById(data.classId);
-
-        if (_class.createdBy.toString() != req.user._id.toString()) {
-            return res.status(400).send("You are not authorized to update this class");
-        }
-
-        _class.name = data.name;
-        _class.section = data.section;
-        _class.subject = data.subject;
-
-        await _class.save();
-
-        return res.send(_class);
-    }
-    catch (err) {
-        return res.status(500).send(err);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send("Error deleting class");
     }
 });
 
-router.post("/students", validate, async (req, res) => {
-    const schema = joi.object({
-        classId: joi.string().required(),
-    });
+//
 
-    try {
-        const data = await schema.validateAsync(req.body);
+// router.post("/createClass", validate, async (req, res) => {
+//     const schema = joi.object({
+//         name: joi.string().required(),
+//         section: joi.string().required(),
+//         subject: joi.string().required(),
+//     });
 
-        const _class = await Class.findById(data.classId);
+//     try {
+//         const data = await schema.validateAsync(req.body);
 
-        if (_class.createdBy.toString() != req.user._id.toString()) {
-            return res.status(400).send("You are not authorized to update this class");
-        }
+//         const newClass = new Class({
+//             name: data.name,
+//             section: data.section,
+//             subject: data.subject,
+//             students: [],
+//             createdBy: req.user._id,
+//         });
 
-        var students = _class.students;
-        //sort students by roll no
-        students.sort((a, b) => a.rollNo - b.rollNo);
+//         await newClass.save();
 
-        return res.send(students);
-    }
-    catch (err) {
-        return res.status(500).send(err);
-    }
-})
+//         return res.send(newClass);
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// });
 
-router.post("/students/delete", validate, async (req, res) => {
-    const schema = joi.object({
-        classId: joi.string().required(),
-        rollNo: joi.number().required(),
-    });
+// router.post("/createSubject", validate, async (req, res) => {
+//     const schema = joi.object({
+//         name: joi.string().required(),
+//         section: joi.string().required(),
+//         subject: joi.string().required(),
+//     });
 
-    try {
-        const data = await schema.validateAsync(req.body);
+//     try {
+//         const data = await schema.validateAsync(req.body);
 
-        const _class = await Class.findById(data.classId);
+//         const newClass = new Class({
+//             name: data.name,
+//             section: data.section,
+//             subject: data.subject,
+//             students: [],
+//             createdBy: req.user._id,
+//         });
 
-        if (_class.createdBy.toString() != req.user._id.toString()) {
-            return res.status(400).send("You are not authorized to update this class");
-        }
+//         await newClass.save();
 
-        _class.students = _class.students.filter(student => student.rollNo != data.rollNo);
+//         return res.send(newClass);
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// });
 
-        await _class.save();
+// router.post("/add-student", validate, async (req, res) => {
+//     const schema = joi.object({
+//         classId: joi.string().required(),
+//         name: joi.string().required(),
+//         rollNo: joi.number().required(),
+//     });
 
-        return res.send(_class);
-    }
-    catch (err) {
-        return res.status(500).send(err);
-    }
-});
+//     try {
+//         const data = await schema.validateAsync(req.body);
 
-router.post("/students/update", validate, async (req, res) => {
-    const schema = joi.object({
-        classId: joi.string().required(),
-        rollNo: joi.number().required(),
-        name: joi.string().required(),
-    });
+//         const studentExists = await Class.findOne({ _id: data.classId, "students.rollNo": data.rollNo });
 
-    try {
-        const data = await schema.validateAsync(req.body);
+//         if (studentExists) {
+//             return res.status(400).send("Student with this roll no already exists");
+//         }
 
-        const _class = await Class.findById(data.classId);
+//         const _class = await Class.findById(data.classId);
 
-        if (_class.createdBy.toString() != req.user._id.toString()) {
-            return res.status(400).send("You are not authorized to update this class");
-        }
+//         if (_class.createdBy.toString() != req.user._id.toString()) {
+//             return res.status(400).send("You are not authorized to update this class");
+//         }
 
-        _class.students = _class.students.map(student => {
-            if (student.rollNo == data.rollNo) {
-                student.name = data.name;
-            }
-            return student;
-        });
+//         _class.students.push({ name: data.name, rollNo: data.rollNo });
 
-        await _class.save();
+//         await _class.save();
 
-        return res.send(_class);
-    }
-    catch (err) {
-        return res.status(500).send(err);
-    }
-});
+//         return res.send(_class);
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// });
 
-router.post("/add-student", validate, async (req, res) => {
-    const schema = joi.object({
-        classId: joi.string().required(),
-        name: joi.string().required(),
-        rollNo: joi.number().required(),
-    });
+// router.post("/import-students", validate, async (req, res) => {
+//     try {
+//         const data = req.body;
+//         const _class = await Class.findById(data.classId);
 
-    try {
-        const data = await schema.validateAsync(req.body);
+//         if (_class.createdBy.toString() != req.user._id.toString()) {
+//             return res.status(400).send("You are not authorized to update this class");
+//         }
 
-        const studentExists = await Class.findOne({ _id: data.classId, "students.rollNo": data.rollNo });
+//         if (!req.files || !req.files.students) {
+//             return res.status(400).send("No file uploaded");
+//         }
 
-        if (studentExists) {
-            return res.status(400).send("Student with this roll no already exists");
-        }
+//         const students = req.files.students.data.toString().split("\n");
 
-        const _class = await Class.findById(data.classId);
+//         for (let i = 0; i < students.length; i++) {
+//             const student = students[i].split(",");
+//             if (student.length != 2) {
+//                 continue;
+//             }
 
-        if (_class.createdBy.toString() != req.user._id.toString()) {
-            return res.status(400).send("You are not authorized to update this class");
-        }
+//             if (isNaN(parseInt(student[0]))) {
+//                 continue;
+//             }
 
-        _class.students.push({ name: data.name, rollNo: data.rollNo });
+//             const rollNo = parseInt(student[0]);
+//             const name = student[1];
 
-        await _class.save();
+//             const studentExists = await Class.findOne({ _id: data.classId, "students.rollNo": rollNo });
 
-        return res.send(_class);
-    }
-    catch (err) {
-        return res.status(500).send(err);
-    }
-});
+//             if (studentExists) {
+//                 _class.students = _class.students.filter(student => student.rollNo != rollNo);
+//             }
 
-router.post("/import-students", validate, async (req, res) => {
-    try {
-        const data = req.body;
-        const _class = await Class.findById(data.classId);
+//             _class.students.push({ name: name, rollNo: rollNo });
+//         }
 
-        if (_class.createdBy.toString() != req.user._id.toString()) {
-            return res.status(400).send("You are not authorized to update this class");
-        }
+//         await _class.save();
 
-        if (!req.files || !req.files.students) {
-            return res.status(400).send("No file uploaded");
-        }
+//         return res.send(_class);
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// });
+// router.post("/delete", validate, async (req, res) => {
+//     const schema = joi.object({
+//         classId: joi.string().required(),
+//     });
 
-        const students = req.files.students.data.toString().split("\n");
+//     try {
+//         const data = await schema.validateAsync(req.body);
 
-        for (let i = 0; i < students.length; i++) {
-            const student = students[i].split(",");
-            if (student.length != 2) {
-                continue;
-            }
+//         const _class = await Class.findById(data.classId);
 
-            if (isNaN(parseInt(student[0]))) {
-                continue;
-            }
+//         if (_class.createdBy.toString() != req.user._id.toString()) {
+//             return res.status(400).send("You are not authorized to delete this class");
+//         }
 
-            const rollNo = parseInt(student[0]);
-            const name = student[1];
+//         await Class.findByIdAndDelete(data.classId);
 
-            const studentExists = await Class.findOne({ _id: data.classId, "students.rollNo": rollNo });
+//         return res.send("Class deleted successfully");
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// });
 
-            if (studentExists) {
-                _class.students = _class.students.filter(student => student.rollNo != rollNo);
-            }
+// router.post("/update", validate, async (req, res) => {
+//     const schema = joi.object({
+//         classId: joi.string().required(),
+//         name: joi.string().required(),
+//         section: joi.string().required(),
+//         subject: joi.string().required(),
+//     });
 
-            _class.students.push({ name: name, rollNo: rollNo });
-        }
+//     try {
+//         const data = await schema.validateAsync(req.body);
 
-        await _class.save();
+//         const _class = await Class.findById(data.classId);
 
-        return res.send(_class);
-    }
-    catch (err) {
-        return res.status(500).send(err);
-    }
-});
+//         if (_class.createdBy.toString() != req.user._id.toString()) {
+//             return res.status(400).send("You are not authorized to update this class");
+//         }
+
+//         _class.name = data.name;
+//         _class.section = data.section;
+//         _class.subject = data.subject;
+
+//         await _class.save();
+
+//         return res.send(_class);
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// });
+
+// router.post("/students", validate, async (req, res) => {
+//     const schema = joi.object({
+//         classId: joi.string().required(),
+//     });
+
+//     try {
+//         const data = await schema.validateAsync(req.body);
+
+//         const _class = await Class.findById(data.classId);
+
+//         if (_class.createdBy.toString() != req.user._id.toString()) {
+//             return res.status(400).send("You are not authorized to update this class");
+//         }
+
+//         var students = _class.students;
+//         //sort students by roll no
+//         students.sort((a, b) => a.rollNo - b.rollNo);
+
+//         return res.send(students);
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// })
+
+// router.post("/students/delete", validate, async (req, res) => {
+//     const schema = joi.object({
+//         classId: joi.string().required(),
+//         rollNo: joi.number().required(),
+//     });
+
+//     try {
+//         const data = await schema.validateAsync(req.body);
+
+//         const _class = await Class.findById(data.classId);
+
+//         if (_class.createdBy.toString() != req.user._id.toString()) {
+//             return res.status(400).send("You are not authorized to update this class");
+//         }
+
+//         _class.students = _class.students.filter(student => student.rollNo != data.rollNo);
+
+//         await _class.save();
+
+//         return res.send(_class);
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// });
+
+// router.post("/students/update", validate, async (req, res) => {
+//     const schema = joi.object({
+//         classId: joi.string().required(),
+//         rollNo: joi.number().required(),
+//         name: joi.string().required(),
+//     });
+
+//     try {
+//         const data = await schema.validateAsync(req.body);
+
+//         const _class = await Class.findById(data.classId);
+
+//         if (_class.createdBy.toString() != req.user._id.toString()) {
+//             return res.status(400).send("You are not authorized to update this class");
+//         }
+
+//         _class.students = _class.students.map(student => {
+//             if (student.rollNo == data.rollNo) {
+//                 student.name = data.name;
+//             }
+//             return student;
+//         });
+
+//         await _class.save();
+
+//         return res.send(_class);
+//     }
+//     catch (err) {
+//         return res.status(500).send(err);
+//     }
+// });
 
 
 export default router;

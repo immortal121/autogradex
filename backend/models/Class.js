@@ -1,39 +1,10 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const ClassSchema = new mongoose.Schema(
-    {
-        name: {
-            type: String,
-            required: true
-        },
-        section: {
-            type: String,
-            required: true
-        },
-        subject: {
-            type: String,
-            required: true
-        },
-        students: [
-            {
-                rollNo: {
-                    type: Number
-                },
-                name: {
-                    type: String
-                },
-            }
-        ],
-        createdBy: {
-            type: mongoose.Schema.ObjectId,
-            required: true
-        },
-    },
-    {
-        timestamps: true,
-    }
-);
+const classSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  sections: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Section' }],
+  subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subject' }],
+  organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true } 
+});
 
-const Class = mongoose.model("Class", ClassSchema);
-
-export default Class;
+export default mongoose.model('Class', classSchema);

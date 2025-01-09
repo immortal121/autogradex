@@ -134,7 +134,7 @@ export default function Main() {
         </div>
         {loggedIn ?
           <Link href={"/home"}><label className={'btn btn-primary ' + (!color ? "glass text-white" : "")}><FiHome /> Home</label></Link>
-          : <Link href={"/login"}><label className={'btn btn-primary ' + (!color ? "glass text-white" : "")}><FiLogIn /> Sign In</label></Link>}
+          : <Link href={"/signin"}><label className={'btn btn-primary ' + (!color ? "glass text-white" : "")}><FiLogIn /> Sign In</label></Link>}
       </div>
       <motion.h1
         initial={{ opacity: 0, y: 30 }}

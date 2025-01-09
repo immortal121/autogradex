@@ -1,0 +1,28 @@
+
+// <tr key={i}>
+// <th>{student?.rollNo}</th>
+// <td>{student?.name}</td>
+// <td className="print"><label htmlFor="editstudent_modal" className="btn btn-square" onClick={() => {
+//   setEditStudentRollNo(student.rollNo);
+//   setEditStudentName(student.name);
+// }}><FiEdit /></label></td>
+// <td className="print"><label htmlFor="deletestudent_modal" className="btn btn-square" onClick={() => setDeleteStudentRollNo(student.rollNo)}><FiTrash /></label></td>
+// </tr>
+
+// // 
+// {/* New Student Modal */}
+// <input type="checkbox" id="newstudent_modal" className="modal-toggle" />
+// <div className="modal" role="dialog">
+//   <div className="modal-box">
+//     <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> New Student</h3>
+//     <p className="flex items-center py-4"><FiHash className='mr-2' />Roll No</p>
+//     <input className="input input-bordered w-full" placeholder="Roll No" type="number" onChange={(x) => setNewStudentRollNo(parseInt(x.target.value))} value={newStudentRollNo} />
+//     <p className="flex items-center py-4"><FiUser className='mr-2' />Student Name</p>
+//     <input className="input input-bordered w-full" placeholder="Student Name" type="text" onChange={(x) => setNewStudentName(x.target.value)} value={newStudentName} />
+//     <div className="modal-action">
+//       <label htmlFor="newstudent_modal" className="btn">Cancel</label>
+//       <label htmlFor="newstudent_modal" className="btn btn-primary" onClick={() => addStudent()}>Add Student</label>
+//     </div>
+//   </div>
+//   <label className="modal-backdrop" htmlFor="newstudent_modal">Cancel</label>
+// </div>

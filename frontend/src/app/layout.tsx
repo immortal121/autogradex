@@ -4,6 +4,7 @@ import { appName } from "@/utils/utils";
 import { Golos_Text } from 'next/font/google'
 import "react-toastify/dist/ReactToastify.css";
 import Head from "next/head";
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 
 const golos = Golos_Text({
   weight: ["400", "500", "600", "700"],
@@ -35,6 +36,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
   return (
     <html lang="en" data-theme="light" className="scroll-smooth">
       <Head>
@@ -44,7 +46,7 @@ export default function RootLayout({
         />
         <link rel="favicon" href="/icon.png" />
       </Head>
-      <body className={golos.className}>{children}</body>
+      <body className={golos.className}><AppRouterCacheProvider>   {children}</AppRouterCacheProvider></body>
     </html>
   );
 }
