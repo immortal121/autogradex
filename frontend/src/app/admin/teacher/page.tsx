@@ -1,84 +1,94 @@
 "use client";
-import { useContext, useState } from "react";
-import { FiUser, FiEdit, FiTrash, FiPlusCircle, FiUsers, FiBook, FiHash, FiPrinter, FiDownload, FiHelpCircle } from "react-icons/fi";
+import { useContext, useState, useEffect, useRef } from "react";
 import { MainContext } from "@/context/context";
-import { appName } from "@/utils/utils";
-import { FaFileImport } from "react-icons/fa";
-import { TbFileImport } from "react-icons/tb";
 import TableComponent from '@/utils/TableComponent';
+import Link from 'next/link';
+import { toast } from 'react-toastify';
+import {
+  Box,
+  Typography,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button, Breadcrumbs
+} from '@mui/material';
 
-export default function Classes() {
+export default function Class() {
+
+
+  const [rowData, setRowData] = useState();
+  const modelId = "teacher";
   const {
-    setSelectedEvaluator,
-    classes,
-    selectedClass,
-    students,
-    newStudentName,
-    setNewStudentName,
-    newStudentRollNo,
-    setNewStudentRollNo,
-    setDeleteStudentRollNo,
-    addStudent,
-    deleteStudent,
-    editStudentRollNo,
-    setEditStudentRollNo,
-    editStudentName,
-    setEditStudentName,
-    editStudent,
-    handleStudentFileChange
-  } = useContext(MainContext);
+    teachers,getTeachers,deleteTeacher,
+  
+} = useContext(MainContext);
 
-  const [search, setSearch] = useState("");
-  const [rowData,setRowData] = useState(0);
-  const data = [
-    { id: 1, name: 'John Doe', age: 30, city: 'New York', place: 'something' },
+  const inputCreateRef = useRef(null);
+  const inputEditRef = useRef(null);
+  const inputDeleteRef = useRef(null);
+  useEffect(() => {
+    getTeachers();
+  }, []);
 
-  ];
+
+  const handleDeleteTeacher = () => {
+    if (inputDeleteRef.current) {
+      inputDeleteRef.current.click();
+    }
+
+    deleteTeacher(rowData._id);
+  };
+
   return (
     <>
       <div className="animate-fade-in-bottom flex flex-col w-full p-4 overflow-x-auto h-full max-sm:max-w-none">
-        <div className="flex justify-start flex-wrap p-2">
-          <div>
-            <label htmlFor="newstudent_modal" className="btn btn-secondary" onClick={() => setNewStudentRollNo(students.length + 1)}>+ New Class</label>
-          </div>
 
-        </div>
-        <div>
-          <TableComponent data={data} editable={true} action={setRowData} deletable={true} modelName={student} />
-        </div>
-        <input type="checkbox" id="newstudent_modal" className="modal-toggle" />
-        <div className="modal" role="dialog">
-          <div className="modal-box">
+        <Box className="bg-white flex flex-col gap-4 h-full p-4 mb-2"  >
+          <Typography variant="h5" component="h2" gutterBottom>
+            Class
+          </Typography>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link underline="hover" color="inherit" href="/admin">
+              Home
+            </Link>
+            <Link underline="hover" color="inherit" href="/admin/teacher">Teacher</Link>
 
-            <div className="modal-action">
-              <label htmlFor="newstudent_modal" className="btn">Cancel</label>
+          </Breadcrumbs>
+          <div className="flex justify-start gap-4 flex-wrap p-2">
+            <div>
+              <Link href="/admin/teacher/create" className="btn btn-secondary" >+ Create Teacher</Link>
             </div>
           </div>
-          <label className="modal-backdrop" htmlFor="newstudent_modal">Cancel</label>
-        </div>
+        </Box>
+        <TableComponent visibleColumns={['name', 'email','class','section','subject']} data={teachers} editable={true} deletable={true} action={setRowData} modelName={modelId} />
 
-
-        <input type="checkbox" id="deletestudent_modal" className="modal-toggle" />
+        <input type="checkbox" id={`delete${modelId}_modal`} ref={inputDeleteRef} className="modal-toggle" />
         <div className="modal" role="dialog">
           <div className="modal-box">
-            <h1>Delete : {rowData.id}</h1>
+            <Box className="bg-white flex flex-col gap-4 h-full"  >
+              <Typography variant="h6" component="h2" className="text-gray-800 mb-4">
+                Delete Subject
+              </Typography>
+              <Typography variant="h5" component="h2" className="text-red-800 mb-4">
+                Please Confirm to Teacher - {rowData?.name} Delete ?
+              </Typography>
+            </Box>
             <div className="modal-action">
-              <label htmlFor="deletestudent_modal" className="btn">Cancel</label>
+              <label htmlFor={`delete${modelId}_modal`} className="btn">Cancel</label>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleDeleteTeacher}
+                className="mt-4"
+              >Confirm
+              </Button>
             </div>
           </div>
-          <label className="modal-backdrop" htmlFor="newstudent_modal">Cancel</label>
+          <label className="modal-backdrop" htmlFor={`delete${modelId}_modal`}>Cancel</label>
         </div>
-        <input type="checkbox" id="editstudent_modal" className="modal-toggle" />
-        <div className="modal" role="dialog">
-          <div className="modal-box">
-            <h1>Edit : {rowData.id}</h1>
-            <div className="modal-action">
-              <label htmlFor="editstudent_modal" className="btn">Cancel</label>
-            </div>
-          </div>
-          <label className="modal-backdrop" htmlFor="newstudent_modal">Cancel</label>
         </div>
-      </div>
     </>
   );
 }

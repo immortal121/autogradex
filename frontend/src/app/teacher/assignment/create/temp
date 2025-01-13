@@ -1,0 +1,35 @@
+
+              {questionPaper.length > 0 ?
+                <div className="flex flex-wrap">{
+                  questionPaper.map((file: string, i: number) => {
+                    return <img key={i} src={file} className="border cursor-pointer w-20 h-20 object-cover rounded-md mr-2 mb-2" onClick={() => window.open(file)} />
+                  })
+                }</div>
+                : <div className="flex">
+                  <UploadDropzone
+                    endpoint="media"
+                    onBeforeUploadBegin={async (files) => {
+                      var pdfFiles = files.filter((file) => file.type === "application/pdf");
+                      var otherFiles = files.filter((file) => file.type !== "application/pdf");
+
+                      if (pdfFiles.length === 0) return files;
+
+                      for (const file of pdfFiles) {
+                        const images = await convertPDFToImage(file);
+                        otherFiles.push(...images);
+                      }
+
+                      return otherFiles;
+                    }}
+                    onClientUploadComplete={(res) => {
+                      var files = [];
+                      for (const file of res) {
+                        files.push(file.url);
+                      }
+                      setQuestionPapers([...files]);
+                    }}
+                    onUploadError={(error: Error) => {
+                      alert(`ERROR! ${error.message}`);
+                    }}
+                  />
+                </div>}

@@ -47,3 +47,113 @@ answer_sheets(assignmentid(fk),studentid,answersheet_file,scoredmarks,comments);
 3 . make role management
 4 . create evaluation model 
 5 . check up and submit
+/////////////////////////////
+
+          <Grid size={12} >
+            <Grid size={12}>
+              <InputLabel id="subject-label" className="my-4">Subject</InputLabel>
+            </Grid>
+            <Grid size={12}>
+              <Button
+                variant="standard"
+                color="primary"
+                onClick={handleAddSection}
+                startIcon={<AddCircleIcon />}
+                className="my-4"
+                sx={{ p: 2 }}
+              >
+                Add Section
+              </Button>
+            </Grid>
+
+            {formState.sections.map((section, sectionIndex) => (
+              <Grid size={12} key={sectionIndex}>
+                <Accordion >
+                  <AccordionSummary className="" expandIcon={<ExpandMoreIcon />}>
+                    <TextField
+                      label="Section Name"
+                      value={section.sectionName}
+                      onChange={(e) =>
+                        handleSectionNameChange(sectionIndex, e.target.value)
+                      }
+                    />
+                    <IconButton onClick={() => handleDeleteSection(sectionIndex)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid spacing={2}>
+                      {section.questions.map((question, questionIndex) => (
+                        <Grid size={12} key={questionIndex}>
+                          <Typography variant="subtitle1">
+                            Question {questionIndex + 1}:
+                          </Typography>
+                          <TextField
+                            label="Description"
+                            fullWidth
+                            value={question.description}
+                            onChange={(e) =>
+                              handleQuestionChange(
+                                sectionIndex,
+                                questionIndex,
+                                'description',
+                                e.target.value
+                              )
+                            }
+                          />
+                          <TextField
+                            label="Marks"
+                            type="number"
+                            value={question.marks}
+                            onChange={(e) =>
+                              handleQuestionChange(
+                                sectionIndex,
+                                questionIndex,
+                                'marks',
+                                e.target.value
+                              )
+                            }
+                          />
+                          <Select
+                            labelId="question-type-label"
+                            id="question-type"
+                            value={question.questionNo}
+                            onChange={(e) =>
+                              handleQuestionChange(
+                                sectionIndex,
+                                questionIndex,
+                                'questionNo',
+                                e.target.value
+                              )
+                            }
+                          >
+                            <MenuItem value="text">Text</MenuItem>
+                            <MenuItem value="radio">Radio</MenuItem>
+                            {/* Add more question types as needed */}
+                          </Select>
+                          <IconButton
+                            onClick={() =>
+                              handleDeleteQuestion(sectionIndex, questionIndex)
+                            }
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Grid>
+                      ))}
+                      <Grid size={12}>
+                        <Typography variant="h6">Add New Question</Typography>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handleAddQuestion(sectionIndex)}
+                          startIcon={<AddCircleIcon />}
+                        >
+                          Add Question
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+              </Grid>
+            ))}
+          </Grid>

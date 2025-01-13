@@ -5,15 +5,12 @@ import { useEffect, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import { appName, serverURL } from '@/utils/utils';
 import { ToastContainer, toast } from 'react-toastify';
+import useAuth from "@/utils/useAuth";
+
 
 export default function Home() {
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            if (localStorage.getItem("token")) {
-                window.location.href = "/home";
-            }
-        }
-    }, []);
+    
+    useAuth();
 
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
@@ -55,7 +52,7 @@ export default function Home() {
                   })();
             })
             .catch((error) => {
-                toast.error("Something went wrong!");
+                toast.error("Invalid Credentials !");
             });
     }
 

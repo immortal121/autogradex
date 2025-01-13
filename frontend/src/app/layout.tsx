@@ -5,6 +5,10 @@ import { Golos_Text } from 'next/font/google'
 import "react-toastify/dist/ReactToastify.css";
 import Head from "next/head";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "@/app/api/uploadthing/core";
+
 
 const golos = Golos_Text({
   weight: ["400", "500", "600", "700"],
@@ -40,13 +44,13 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" className="scroll-smooth">
       <Head>
-        <meta
-          name="description"
-          content="This is the meta description for My Page"
-        />
+        
         <link rel="favicon" href="/icon.png" />
       </Head>
-      <body className={golos.className}><AppRouterCacheProvider>   {children}</AppRouterCacheProvider></body>
+      <body className={golos.className}>
+      <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)}
+        />
+        <AppRouterCacheProvider>   {children}</AppRouterCacheProvider></body>
     </html>
   );
 }

@@ -1,240 +1,77 @@
 "use client";
-import { useContext, useState } from "react";
-import { FiUser, FiEdit, FiTrash, FiPlusCircle, FiUsers, FiBook, FiHash, FiPrinter, FiDownload, FiHelpCircle } from "react-icons/fi";
+import { useContext, useState, useEffect, useRef } from "react";
 import { MainContext } from "@/context/context";
-import { appName } from "@/utils/utils";
-import { FaFileImport } from "react-icons/fa";
-import { TbFileImport } from "react-icons/tb";
 import TableComponent from '@/utils/TableComponent';
+import Link from 'next/link';
+import { toast } from 'react-toastify';
+import {
+  Box,
+  Typography,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button, Breadcrumbs
+} from '@mui/material';
 
-export default function Classes() {
+export default function Class() {
+
+
+  const [rowData, setRowData] = useState();
+  const modelId = "Class";
   const {
-    setSelectedEvaluator,
     classes,
-    selectedClass,
-    students,
-    newStudentName,
-    setNewStudentName,
-    newStudentRollNo,
-    setNewStudentRollNo,
-    setDeleteStudentRollNo,
-    addStudent,
-    deleteStudent,
-    editStudentRollNo,
-    setEditStudentRollNo,
-    editStudentName,
-    setEditStudentName,
-    editStudent,
-    handleStudentFileChange
+    setClasses,
+    subjects,
+    getSubjects,
+    getClasses,
+    classSelected,
+    setClassSelected,
+    ClassName,
+    setClassName,
+    ClassDescription,
+    setClassDescription,
+    editClassName, setEditClassName, editClassDescription, setEditClassDescription,
+    createClass, deleteClass, editClass,
   } = useContext(MainContext);
 
-  const [search, setSearch] = useState("");
-  const data = [
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Peter Jones', age: 40, city: 'Paris', place: 'something' },
-    { name: 'John Doe', age: 30, city: 'New York', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Jane Doe', age: 25, city: 'London', place: 'something' },
-    { name: 'Rohith', age: 40, city: 'Paris', place: 'something' },
+  const inputCreateRef = useRef(null);
+  const inputEditRef = useRef(null);
+  const inputDeleteRef = useRef(null);
+  useEffect(() => {
+    getClasses();
+  }, []);
 
-  ];
+
+
   return (
     <>
       <div className="animate-fade-in-bottom flex flex-col w-full p-4 overflow-x-auto h-full max-sm:max-w-none">
-        <div className="flex justify-start flex-wrap p-2">
-          <div>
-            <label htmlFor="newstudent_modal" className="btn btn-secondary" onClick={() => setNewStudentRollNo(students.length + 1)}>+ New Class</label>
+
+        <Box className="bg-white flex flex-col gap-4 h-full p-4 mb-2"  >
+          <Typography variant="h5" component="h2" gutterBottom>
+            Class
+          </Typography>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link underline="hover" color="inherit" href="/admin">
+              Home
+            </Link>
+            <Link underline="hover" color="inherit" href="/admin/Class">Class</Link>
+
+          </Breadcrumbs>
+          <div className="flex justify-start gap-4 flex-wrap p-2">
+            <div>
+              <Link href="/admin/class/create" className="btn btn-secondary" >+ Create Class</Link>
+            </div>
+            <div>
+              <Link href="#" className="btn btn-secondary" > Edit Class</Link>
+            </div>
           </div>
-          
+        </Box>
+        <TableComponent visibleColumns={['name', 'sections','subjects','studentCount']} data={classes} editable={true} deletable={true} action={setRowData} modelName={'section'} />
+
         </div>
-        <div>
-          <TableComponent data={data} />
-        </div>
-        <input type="checkbox" id="newstudent_modal" className="modal-toggle" />
-              <div className="modal" role="dialog">
-                <div className="modal-box">
-                  {/* <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> Edit Evaluator</h3>
-                  <p className="flex items-center py-4"><FiType className='mr-2' />Title</p>
-                  <input className="input input-bordered w-full" placeholder="What's the name of the exam / evaluator?" type="text" onChange={(x) => setEditEvaluatorTitle(x.target.value)} value={editEvaluatorTitle} />
-                  <p className="flex items-center py-4"><FiUsers className='mr-2' />Class</p> */}
-                  {/* <select className="select select-bordered w-full" value={editEvaluatorClassId} onChange={(x) => setEditEvaluatorClassId(x.target.value)}>
-                    <option disabled value={"-1"}>Select class</option>
-                    {
-                      classes?.map((class_: any, i: any) => (
-                        <option key={i} value={class_._id}>{class_?.subject} | {class_?.name} {class_?.section}</option>
-                      ))
-                    }
-                  </select> */}
-                  <div className="modal-action">
-                    <label htmlFor="newstudent_modal" className="btn">Cancel</label>
-                    {/* <label htmlFor="editevaluator_modal" className="btn btn-primary" onClick={() => editEvaluator()}>Save</label> */}
-                  </div>
-                </div>
-                <label className="modal-backdrop" htmlFor="newstudent_modal">Cancel</label>
-              </div>
-      </div>
     </>
   );
 }

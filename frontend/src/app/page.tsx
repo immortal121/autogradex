@@ -133,7 +133,7 @@ export default function Main() {
           <Link href={"#how-it-works"}><label onClick={() => setSelectedTab(2)} className={'mr-5 btn btn-sm btn-ghost ' + (selectedTab === 2 ? "btn-active text-white " : "") + (color ? " text-black" : "")}>How it works</label></Link>
         </div>
         {loggedIn ?
-          <Link href={"/home"}><label className={'btn btn-primary ' + (!color ? "glass text-white" : "")}><FiHome /> Home</label></Link>
+          <Link href={"/signin"}><label className={'btn btn-primary ' + (!color ? "glass text-white" : "")}><FiHome /> Dashboard</label></Link>
           : <Link href={"/signin"}><label className={'btn btn-primary ' + (!color ? "glass text-white" : "")}><FiLogIn /> Sign In</label></Link>}
       </div>
       <motion.h1

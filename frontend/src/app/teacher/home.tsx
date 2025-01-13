@@ -1,8 +1,8 @@
 "use client";
 import { useContext, useEffect, useRef, useState } from "react";
-import { FiPlus, FiMoreHorizontal, FiSettings, FiUser, FiLogOut, FiFileText, FiEdit, FiTrash, FiArrowRight, FiShoppingCart, FiShoppingBag, FiType, FiPlusCircle, FiKey, FiUsers, FiBook, FiInfo } from "react-icons/fi";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
+// import { MainContext } from "@/context/context";
 import { MainContext } from "@/context/context";
 import { usePathname } from "next/navigation";
 import { toast } from "react-toastify";
@@ -11,8 +11,6 @@ import Logo from "../../../public/autograde.jpeg";
 import * as React from 'react';
 
 import useAuth from '@/utils/useAuth'; // Import the hook
-
-
 // 
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -40,8 +38,11 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import { SidebarItem, SubSidebarItem } from "@/utils/SidebarItem";
 
-import { SpaceDashboard,School, CastForEducation,Person,Create} from '@mui/icons-material';
+import {ListItem,ListItemAvatar,ListItemText} from "@mui/material";
+
+import { SpaceDashboard, School, CastForEducation, Person, Create } from '@mui/icons-material';
 //
+
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -95,88 +96,17 @@ export default function Home({
   children: React.ReactNode
 }) {
   const {
-    moreMenuOpen,
-    setMoreMenuOpen,
     showMenu,
     setShowMenu,
+    fetchUser,
     user,
-    selectedTab,
-    setSelectedTab,
-    limits,
-    evaluators,
-    selectedEvaluator,
-    setSelectedEvaluator,
-    newEvaluatorTitle,
-    setNewEvaluatorTitle,
-    newEvaluatorQuestionPapers,
-    setNewEvaluatorQuestionPapers,
-    newEvaluatorAnswerKeys,
-    setNewEvaluatorAnswerKeys,
-    classes,
-    selectedClass,
-    setSelectedClass,
-    getEvaluators,
-    getClasses,
-    createEvaluator,
-    deleteEvaluator,
-    getStudents,
-    newEvaluatorClassId,
-    setNewEvaluatorClassId,
-    setEditClassName,
-    setEditClassSection,
-    setEditClassSubject,
-    editClassName,
-    editClassSection,
-    editClassSubject,
-    editClass,
-    createClass,
-    deleteClass,
-    newClassName,
-    setNewClassName,
-    newClassSection,
-    setNewClassSection,
-    newClassSubject,
-    setNewClassSubject,
-    editEvaluatorTitle,
-    setEditEvaluatorTitle,
-    editEvaluatorClassId,
-    setEditEvaluatorClassId,
-    editEvaluator,
-    ongoingEvaluation,
-    getEvaluationProgressSSE,
-    convertPDFToImage
+
   } = useContext(MainContext);
 
-  const pathname = usePathname();
-  const newClassModalRef = useRef<any | null>(null);
-  useAuth();
-  useEffect(() => {
-      
-    getClasses();
-    getEvaluators();
-      
-    }, []); 
 
   useEffect(() => {
-    if (selectedClass !== -1) {
-      getStudents(classes[selectedClass]?._id);
-    }
-  }, [selectedClass]);
-
-  const [initial, setInitial] = useState(true);
-  useEffect(() => {
-    if (initial) {
-      setInitial(false);
-      setSelectedEvaluator(parseInt(localStorage.getItem("selectedEvaluator") || "-1"));
-    }
-    else {
-      localStorage.setItem("selectedEvaluator", selectedEvaluator.toString());
-    }
-
-    if (selectedEvaluator !== -1 && evaluators[selectedEvaluator]?._id) {
-      getEvaluationProgressSSE(evaluators[selectedEvaluator]._id);
-    }
-  }, [selectedEvaluator, evaluators]);
+    fetchUser();
+  }, []);
   // 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
@@ -215,8 +145,8 @@ export default function Home({
       keepMounted
       open={isMenuOpen}
       onClose={handleMenuClose}
-      
-              className="print"
+
+      className="print"
     >
       <MenuItem onClick={handleMenuClose}>
         <ListItemIcon>
@@ -236,7 +166,7 @@ export default function Home({
         window.location.href = "/";
       }}>
         <ListItemIcon>
-          <LogoutIcon fontSize="small"  className="text-red-500" />
+          <LogoutIcon fontSize="small" className="text-red-500" />
         </ListItemIcon>
         Logout
       </MenuItem>
@@ -252,8 +182,8 @@ export default function Home({
       anchorEl={mobileMoreAnchorEl}
       id={mobileMenuId}
       keepMounted
-      
-              className="print"
+
+      className="print"
 
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
@@ -304,15 +234,12 @@ export default function Home({
     </Menu>
   );
 
-  // 
   return (
-    <main className="flex bg-base-100 h-screen w-screen m-0 max-sm:p-0" onClick={() => {
-      if (moreMenuOpen) setMoreMenuOpen(false);
-    }}>
+    <main className="flex bg-base-100 h-screen w-screen m-0 max-sm:p-0 overflow-hidden" >
       {/* Sidebar */}
       <div className={'print  bg-white flex flex-col p-2 m-0 min-w-[275px] max-w-[15vw] h-full rounded-md ' + (!showMenu ? "max-sm:hidden " : "max-sm:fixed max-sm:w-full max-sm:h-full max-sm:max-w-none max-sm:z-[1200] ")}>
         <div className="flex justify-between md:justify-center items-center max-sm:mb-4">
-          <Link href="/"><div className="mb-4 font-semibold max-sm:mb-3" onClick={() => setSelectedEvaluator(-1)}>
+          <Link href="/"><div className="mb-4 font-semibold max-sm:mb-3">
             <Image src={Logo} height={50} alt="autogradex" />
           </div></Link>
 
@@ -329,68 +256,41 @@ export default function Home({
           </IconButton>
         </div>
         <div className='p-0 my-2 h-full print no-scrollbar w-full overflow-hidden hover:overflow-y-auto'>
-
-          {/*  classes?.map((_class: any, i: number) => {
-               return <div key={i} className={(selectedClass === i ? ' bg-base-200 ' : ' bg-transparent hover:bg-base-200 ') + 'cursor-pointer flex flex-col px-3 py-2 rounded-md w-full mb-1'} onClick={() => { setSelectedClass(i); setShowMenu(false) }}>
-            //     <div className='flex justify-start items-center'>
-            //       <div className='w-fit mr-2'>
-            //         <FiUsers />
-            //       </div>
-            //       <div className='flex flex-col items-start'>
-            //         <p className='text-sm text-ellipsis line-clamp-1 font-semibold'>{_class.subject}</p>
-            //         <p className='text-xs text-ellipsis line-clamp-1'>{_class.name} {_class.section}</p>
-            //       </div>
-            //     </div>
-            //     {selectedClass === i ?
-            //       <div className='flex mt-2'>
-            //         <label htmlFor='editclass_modal' className='cursor-pointer flex justify-center items-center w-full p-2 bg-base-300 rounded-md mr-1 hover:bg-gray-500 hover:text-white' onClick={() => {
-            //           setEditClassName(classes[i].name);
-            //           setEditClassSection(classes[i].section);
-            //           setEditClassSubject(classes[i].subject);
-            //         }}>
-            //           <FiEdit /><p className='ml-2 text-xs'>Edit</p>
-            //         </label>
-            //         <label htmlFor='deleteclass_modal' className='cursor-pointer flex justify-center items-center w-full p-2 bg-base-300 rounded-md hover:bg-red-500 hover:text-white'>
-            //           <FiTrash /><p className='ml-2 text-xs'>Delete</p>
-            //         </label>
-                   </div> : ""}
-               </div>
-             }) */}
-          
-          <SubSidebarItem href="/home" label="Dashboard" icon={<SpaceDashboard/>} />
-          <SidebarItem label="Teacher Management" icon={<School />}>
-            <SubSidebarItem href="/home/teacher" label="Teachers" icon={undefined} />
-          </SidebarItem>
-          <SidebarItem label="Student Management" icon={<Person/>} >
-            <SubSidebarItem href="/home/student" label="Students" icon={undefined} />
-          </SidebarItem>
+          <SubSidebarItem href="/teacher" label="Dashboard" icon={<SpaceDashboard />} />
           <SidebarItem label="Class Management" icon={<CastForEducation />} >
-            <SubSidebarItem href="/home/class" label="Classes" icon={undefined} />
-            <SubSidebarItem href="/home/section" label="Sections" icon={undefined} />
-            <SubSidebarItem href="/home/subject" label="Subjects" icon={undefined} />
+            <SubSidebarItem href="/teacher/class" label="Classes" icon={undefined} />
           </SidebarItem>
-          
-          <SidebarItem label="Exam Management" icon={<Create/>} >
-            <SubSidebarItem href="/home/assignment" label="Assignments" icon={undefined} />
+          <SidebarItem label="Exam Management" icon={<Create />} >
+            <SubSidebarItem href="/teacher/assignment" label="Assignments" icon={undefined} />
           </SidebarItem>
         </div>
 
-        <div className='flex items-center justify-between w-full'>
-          <div className='flex items-center'>
-            <div className="avatar placeholder mr-2">
-              <div className="bg-blue-700 text-white mask mask-squircle w-10">
-                <span><FiUser /></span>
-              </div>
-            </div>
-            <p className='font-semibold'>{user?.name}</p>
-          </div>
+
+        <div className='flex items-center justify-between w-full bg-white border overflow-hidden'>
+          <ListItem alignItems="flex-start">
+            <ListItemAvatar>
+              <Avatar >{user.name ? user.name[0] : ''}</Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              primary={user?.name}
+              className="font-semibold uppercase"
+              secondary={
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{ display: 'inline' }}
+                >{user?.email}
+                </Typography>
+              }
+            />
+          </ListItem>
         </div>
       </div>
       {/* Main */}
-      <div className='flex flex-col m-0 w-full h-screen'>
+      <div className='flex flex-col m-0 min-h-screen flex-1 overflow-y-auto'>
         {/* nav bar  */}
         <AppBar className="print p-2" position="sticky" sx={{ height: 80, display: 'flex', justifyContent: 'center' }} elevation={0} color='transparent'>
-          <Toolbar  className="print">
+          <Toolbar className="print">
             <IconButton
               size="large"
               edge="start"
@@ -401,19 +301,19 @@ export default function Home({
               sx={{ mr: 2, display: { xs: 'flex', md: 'none' }, }}
 
             >
-              <MenuIcon 
-              className="print" />
+              <MenuIcon
+                className="print" />
             </IconButton>
 
             <Search className="print">
-                <SearchIconWrapper>
-                  <SearchIcon />
-                </SearchIconWrapper>
-                <StyledInputBase
-                  placeholder="Search…"
-                  inputProps={{ 'aria-label': 'search' }}
-                />
-              </Search>
+              <SearchIconWrapper>
+                <SearchIcon />
+              </SearchIconWrapper>
+              <StyledInputBase
+                placeholder="Search…"
+                inputProps={{ 'aria-label': 'search' }}
+              />
+            </Search>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
 
@@ -455,8 +355,8 @@ export default function Home({
                 color="inherit"
                 className="print"
               >
-                <MoreIcon 
-              className="print" />
+                <MoreIcon
+                  className="print" />
               </IconButton>
             </Box>
 
@@ -467,12 +367,12 @@ export default function Home({
         </AppBar>
         {/* nav bar end */}
         {/* Actual Page */}
-        <div className="flex-grow overflow-y-hidden bg-[#F5F5F5] ">{children}</div>
-        
+        <div className="flex-grow overflow-y-hidden w-full bg-[#F5F5F5] ">{children}</div>
+
         {/* Actual Page */}
       </div>
       {/* New Evaluator Modal */}
-      <input type="checkbox" id="newevaluator_modal" className="modal-toggle" />
+      {/* <input type="checkbox" id="newevaluator_modal" className="modal-toggle" />
       <div className="modal" role="dialog">
         <div className="modal-box">
           <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> New Evaluator</h3>
@@ -570,9 +470,9 @@ export default function Home({
           </div>
         </div>
         <label className="modal-backdrop" htmlFor="newevaluator_modal">Cancel</label>
-      </div>
+      </div> */}
       {/* Edit Evaluator Modal */}
-      <input type="checkbox" id="editevaluator_modal" className="modal-toggle" />
+      {/* <input type="checkbox" id="editevaluator_modal" className="modal-toggle" />
       <div className="modal" role="dialog">
         <div className="modal-box">
           <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> Edit Evaluator</h3>
@@ -593,9 +493,9 @@ export default function Home({
           </div>
         </div>
         <label className="modal-backdrop" htmlFor="editevaluator_modal">Cancel</label>
-      </div>
+      </div> */}
       {/* Delete Evaluator Modal */}
-      <input type="checkbox" id="deleteevaluator_modal" className="modal-toggle" />
+      {/* <input type="checkbox" id="deleteevaluator_modal" className="modal-toggle" />
       <div className="modal">
         <div className="modal-box">
           <h3 className="flex items-center font-bold text-lg"><FiTrash className="mr-1" /> Delete Evaluator</h3>
@@ -606,9 +506,9 @@ export default function Home({
           </div>
         </div>
         <label className="modal-backdrop" htmlFor="deleteevaluator_modal">Cancel</label>
-      </div>
+      </div> */}
       {/* Evaluator Limit Exceed Modal */}
-      <input type="checkbox" id="limitexceed_modal" className="modal-toggle" />
+      {/* <input type="checkbox" id="limitexceed_modal" className="modal-toggle" />
       <div className="modal">
         <div className="modal-box">
           <h3 className="flex items-center font-bold text-lg"><FiInfo className="mr-1" /> Evaluator limit exceeded</h3>
@@ -619,9 +519,9 @@ export default function Home({
           </div>
         </div>
         <label className="modal-backdrop" htmlFor="limitexceed_modal">Cancel</label>
-      </div>
+      </div> */}
       {/* New Class Modal */}
-      <input type="checkbox" id="newclass_modal" className="modal-toggle" />
+      {/* <input type="checkbox" id="newclass_modal" className="modal-toggle" />
       <div className="modal" role="dialog">
         <div className="modal-box">
           <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> New Class</h3>
@@ -637,9 +537,9 @@ export default function Home({
           </div>
         </div>
         <label className="modal-backdrop" htmlFor="newclass_modal">Cancel</label>
-      </div>
+      </div> */}
       {/* Delete Class Modal */}
-      <input type="checkbox" id="deleteclass_modal" className="modal-toggle" />
+      {/* <input type="checkbox" id="deleteclass_modal" className="modal-toggle" />
       <div className="modal">
         <div className="modal-box">
           <h3 className="flex items-center font-bold text-lg"><FiTrash className="mr-1" /> Delete Class</h3>
@@ -650,9 +550,9 @@ export default function Home({
           </div>
         </div>
         <label className="modal-backdrop" htmlFor="deleteclass_modal">Cancel</label>
-      </div>
+      </div> */}
       {/* Edit Class Modal */}
-      <input type="checkbox" id="editclass_modal" className="modal-toggle" />
+      {/* <input type="checkbox" id="editclass_modal" className="modal-toggle" />
       <div className="modal">
         <div className="modal-box">
           <h3 className="flex items-center font-bold text-lg"><FiEdit className="mr-1" /> Edit Class</h3>
@@ -668,7 +568,7 @@ export default function Home({
           </div>
         </div>
         <label className="modal-backdrop" htmlFor="editclass_modal">Cancel</label>
-      </div>
+      </div> */}
     </main >
   );
 }

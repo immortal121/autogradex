@@ -83,7 +83,7 @@ export default function Class() {
           <div className="flex justify-start gap-4 flex-wrap p-2">
 
             <div>
-              <Link href="/admin/class" className="btn btn-secondary" >Classes</Link>
+              <Link href="#" className="btn btn-secondary" >Classes</Link>
             </div>
           </div>
         </Box>

@@ -186,9 +186,44 @@ router.post("/updateSubject", validate, async (req, res) => {
 
 // class
 router.get("/", validate, async (req, res) => {
-    return res.send((await Class.find({ createdBy: req.user.organization })).reverse());
-});
+    const classes = await Class.find({ organization: req.user.organization })
+        .populate('subjects') // Populate subjects field with Subject documents
+        .populate('sections') // Populate sections field with Section documents
+        .exec();
+    const formattedClasses = classes.map(c => ({
+        _id: c._id,
+        name: c.name,
+        subjects: c.subjects.map(s => s.name).join(', '),
+        sections: c.sections.map(s => s.name).join(', '),
+        sectionDocs: c.sections,
+        subjectDocs: c.subjects,
+        studentCount: c.students ? c.students.length : 0, // Check if students array exists 
+    }));
 
+
+    res.send(formattedClasses);
+});
+router.get("/filtered", validate, async (req, res) => {
+    const filteredClasses = await Class.find({
+        _id: { $in: req.user.teaching.map(assignment => assignment.class) }, // Filter by class IDs from teaching assignments
+      })
+      .populate('subjects') // Populate subjects field with Subject documents
+      .populate('sections') // Populate sections field with Section documents
+      .exec();
+  
+      // Format the filtered classes
+      const formattedClasses = filteredClasses.map(c => ({
+        _id: c._id,
+        name: c.name,
+        subjects: c.subjects.map(s => s.name).join(', '),
+        sections: c.sections.map(s => s.name).join(', '),
+        sectionDocs: c.sections,
+        subjectDocs: c.subjects,
+        studentCount: c.students ? c.students.length : 0, // Check if students array exists
+      }));
+
+    res.send(formattedClasses);
+});
 router.post("/createClass", validate, async (req, res) => {
     const schema = joi.object({
         name: joi.string().required(),
@@ -282,7 +317,6 @@ router.delete("/deleteClass", validate, async (req, res) => {
 });
 
 //
-
 // router.post("/createClass", validate, async (req, res) => {
 //     const schema = joi.object({
 //         name: joi.string().required(),

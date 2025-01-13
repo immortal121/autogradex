@@ -1,14 +1,61 @@
 import mongoose from 'mongoose';
 
-const Schema = mongoose.Schema;
-
-const assignmentSchema = new Schema({
+const assignmentSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  description: { type: String },
-  questionPaper: { type: String }, 
-  totalMarks: { type: Number, required: true },
-  structure: { type: String }, 
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Teacher's ID
+  subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
   class: { type: mongoose.Schema.Types.ObjectId, ref: 'Class', required: true },
+  section: { type: mongoose.Schema.Types.ObjectId, ref: 'Section', required: true },
+  
+  questionPaper: [{ type: String }], // URLs of uploaded question paper PDFs
+  keyAnswerScript: [{ type: String }], // URLs of uploaded key answer scripts
+  
+  assignmentStructure: [
+    {
+      sectionName: String, // Section I, Section II, etc.
+      questions: [
+        {
+          questionNo: String,
+          marks: Number, // Maximum marks for the question
+          isOptional: { type: Boolean, default: false }, // Indicates if the question is optional
+          description: String, // Question details
+        },
+      ],
+    },
+  ],
+
+  students: [
+    {
+      studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      isAbsent: { type: Boolean, default: false }, // Absent status
+      answerScript: [{ type: String }], // URLs to submitted scripts
+      evaluationStatus: { 
+        type: String, 
+        enum: ['Pending', 'Evaluated', 'Absent'], 
+        default: 'Pending' 
+      },
+      uploaded:{type:Boolean,default:false},
+      evaluatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Evaluator's ID
+      marksScored: { type: Number }, // Total marks scored
+      marksBreakdown: [
+        {
+          questionNo: String,
+          marksGiven: Number, // Marks assigned per question
+        },
+      ],
+      comments: { type: String }, // Evaluation comments
+    },
+  ],
+
+  status: { 
+    type: String, 
+    enum: ['Pending Upload', 'Evaluation Not Started', 'Evaluation In Progress', 'Completed'], 
+    default: 'Pending Upload' 
+  },
+  evaluationProgress: { type: Number, min: 0, max: 100, default: 0 }, // Overall evaluation progress percentage
+
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model('Assignment', assignmentSchema);

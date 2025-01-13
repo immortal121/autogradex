@@ -10,6 +10,7 @@ import Image from "next/image";
 import Logo from "../../../public/autograde.jpeg";
 import * as React from 'react';
 
+import {ListItem,ListItemAvatar,ListItemText} from "@mui/material";
 import useAuth from '@/utils/useAuth'; // Import the hook
 // 
 import AppBar from '@mui/material/AppBar';
@@ -233,7 +234,7 @@ export default function Home({
   );
 
   return (
-    <main className="flex bg-base-100 h-screen w-screen m-0 max-sm:p-0" >
+    <main className="flex bg-base-100 h-screen w-screen m-0 max-sm:p-0 overflow-hidden" >
       {/* Sidebar */}
       <div className={'print  bg-white flex flex-col p-2 m-0 min-w-[275px] max-w-[15vw] h-full rounded-md ' + (!showMenu ? "max-sm:hidden " : "max-sm:fixed max-sm:w-full max-sm:h-full max-sm:max-w-none max-sm:z-[1200] ")}>
         <div className="flex justify-between md:justify-center items-center max-sm:mb-4">
@@ -300,20 +301,28 @@ export default function Home({
           </SidebarItem>
         </div>
 
-        <div className='flex items-center justify-between w-full'>
-          <div className='flex items-center'>
-            <div className="avatar placeholder mr-2">
-              <div className="bg-blue-700 text-white mask mask-squircle w-10">
-                <span>
-                <AccountCircle /></span>
-              </div>
-            </div>
-            <p className='font-semibold uppercase'>{user?.name}</p>
-          </div>
+        <div className='flex items-center justify-between w-full bg-white border overflow-hidden'>
+          <ListItem alignItems="flex-start">
+            <ListItemAvatar>
+              <Avatar >{user.name ? user.name[0] : ''}</Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              primary={user?.name}
+              className="font-semibold uppercase"
+              secondary={
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{ display: 'inline' }}
+                >{user?.email}
+                </Typography>
+              }
+            />
+          </ListItem>
         </div>
       </div>
       {/* Main */}
-      <div className='flex flex-col m-0 w-full h-screen'>
+      <div className='flex flex-col m-0 min-h-screen flex-1 overflow-y-auto'>
         {/* nav bar  */}
         <AppBar className="print p-2" position="sticky" sx={{ height: 80, display: 'flex', justifyContent: 'center' }} elevation={0} color='transparent'>
           <Toolbar className="print">
@@ -393,7 +402,7 @@ export default function Home({
         </AppBar>
         {/* nav bar end */}
         {/* Actual Page */}
-        <div className="flex-grow overflow-y-hidden bg-[#F5F5F5] ">{children}</div>
+        <div className="flex-grow overflow-y-hidden w-full bg-[#F5F5F5] ">{children}</div>
 
         {/* Actual Page */}
       </div>

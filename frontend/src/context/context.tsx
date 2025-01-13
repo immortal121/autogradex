@@ -56,8 +56,8 @@ function Context({ children }: { children: React.ReactNode }) {
     const [sectionDescription, setSectionDescription] = useState<string>();
     const [editSectionName, setEditSectionName] = useState<string>();
     const [editSectionDescription, setEditSectionDescription] = useState<string>();
-    
-    const [sectionSelected,setSectionSelected] = useState();
+
+    const [sectionSelected, setSectionSelected] = useState();
 
     // Get Section
     const getSections = async () => {
@@ -107,7 +107,7 @@ function Context({ children }: { children: React.ReactNode }) {
             await getSections();
         } catch (error) {
             console.error("Error creating section :", error);
-            toast.error("section "+sectionName+" already exists");
+            toast.error("section " + sectionName + " already exists");
             setSectionName("");
             setSectionDescription("");
             await getSections();
@@ -142,7 +142,7 @@ function Context({ children }: { children: React.ReactNode }) {
             await getSections();
         } catch (error) {
             console.error("Error editing class:", error);
-            toast.error("Failed to save section!"+error);
+            toast.error("Failed to save section!" + error);
         }
     };
 
@@ -178,8 +178,8 @@ function Context({ children }: { children: React.ReactNode }) {
     const [subjectDescription, setSubjectDescription] = useState<string>();
     const [editSubjectName, setEditSubjectName] = useState<string>();
     const [editSubjectDescription, setEditSubjectDescription] = useState<string>();
-    
-    const [subjectSelected,setSubjectSelected] = useState();
+
+    const [subjectSelected, setSubjectSelected] = useState();
 
     // Get Subject
     const getSubjects = async () => {
@@ -228,7 +228,7 @@ function Context({ children }: { children: React.ReactNode }) {
             await getSubjects();
         } catch (error) {
             console.error("Error creating subject:", error);
-            toast.error("subject "+subjectName+" already exists");
+            toast.error("subject " + subjectName + " already exists");
             setSubjectName("");
             setSubjectDescription("");
             await getSubjects();
@@ -263,7 +263,7 @@ function Context({ children }: { children: React.ReactNode }) {
             await getSubjects();
         } catch (error) {
             console.error("Error editing subject:", error);
-            toast.error("Failed to save subject!"+error);
+            toast.error("Failed to save subject!" + error);
         }
     };
 
@@ -299,31 +299,48 @@ function Context({ children }: { children: React.ReactNode }) {
     const [className, setClassName] = useState<string>();
     const [editClassName, setEditClassName] = useState<string>();
     const [editClassDescription, setEditClassDescription] = useState<string>();
-    
-    const [classSelected,setClassSelected] = useState();
+
+    const [classSelected, setClassSelected] = useState();
 
     // Get Subject
     const getClasses = async () => {
         try {
             const config = {
                 method: "GET",
-                url: `${serverURL}/class/subjects`,
+                url: `${serverURL}/class`,
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem("token")}`,
                 },
             };
 
             const response = await axios(config);
-            setSubjects(response.data);
+            setClasses(response.data);
 
         } catch (error) {
-            console.error("Error fetching subjects:", error);
-            toast.error("Failed to fetch subjects.");
+            console.error("Error fetching classes:", error);
+            toast.error("Failed to fetch classes.");
         }
     };
+    const getFilteredClasses = async () => {
+        try {
+            const config = {
+                method: "GET",
+                url: `${serverURL}/class/filtered`,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+            };
 
+            const response = await axios(config);
+            setClasses(response.data);
+
+        } catch (error) {
+            console.error("Error fetching classes:", error);
+            toast.error("Failed to fetch classes.");
+        }
+    };
     // Create Class
-    const createClass = async (name: string,sections: any[],subjects: any[]) => {
+    const createClass = async (name: string, sections: any[], subjects: any[]) => {
         if (name === '' || sections.length === 0 || subjects.length === 0) {
             return toast.error("Please fill all the fields!");
         }
@@ -348,7 +365,7 @@ function Context({ children }: { children: React.ReactNode }) {
             await getClasses();
         } catch (error) {
             console.error("Error creating class:", error);
-            toast.error("subject "+name+" already exists");
+            toast.error("subject " + name + " already exists");
             await getClasses();
         }
     };
@@ -381,7 +398,7 @@ function Context({ children }: { children: React.ReactNode }) {
             await getSubjects();
         } catch (error) {
             console.error("Error editing subject:", error);
-            toast.error("Failed to save subject!"+error);
+            toast.error("Failed to save subject!" + error);
         }
     };
 
@@ -411,26 +428,374 @@ function Context({ children }: { children: React.ReactNode }) {
     };
 
     // Teacher
-
-    // Get Teacher
-    // Create Teacher
-    // Edit Teacher
-    // Delete Teacher
-
-    // Student
+    const [teachers, setTeachers] = useState<any[]>([]);
 
     // Get Student
+    const getTeachers = async () => {
+        try {
+            const config = {
+                method: "GET",
+                url: `${serverURL}/teacher`,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+            };
+
+            const response = await axios(config);
+            return true;
+
+        } catch (error) {
+            console.error("Error fetching teachers:", error);
+            toast.error("Failed to fetch teachers.");
+        }
+    };
+
     // Create Student
+    
+    const createTeacher = async (name, email, password, teaching) => {
+        try {
+          const config = {
+            method: "POST",
+            url: `${serverURL}/teacher/createTeacher`, // Assuming your backend endpoint is for teachers
+            headers: {
+              "Authorization": `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              name,
+              email,
+              password,
+              teaching, // Assuming 'teaching' is an array of objects with classId, sectionId, and subjectId
+            },
+          };
+      
+          const response = await axios(config);
+      
+          toast.success("Teacher created successfully!");
+        } catch (error) {
+          console.error("Error creating teacher:", error);
+          if (error.response && error.response.data) {
+            toast.error(error.response.data);
+          } else {
+            toast.error("Error creating teacher.");
+          }
+        }
+      };
+    // Edit Student
+    // Delete Teacher
+    const deleteTeacher = async (userId) => {
+        try {
+            const config = {
+                method: "POST",
+                url: `${serverURL}/student/deleteStudent`,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    id: userId,
+                },
+            };
+
+            await axios(config);
+            await getTeachers();
+            toast.success("Teacher deleted!");
+        } catch (error) {
+            console.error("Error deleting students:", error);
+            toast.error("Failed to delete students");
+        }
+    };
+
+    // Student
+    const [students, setStudents] = useState<any[]>([]);
+
+    // Get Student
+    const getStudents = async () => {
+        try {
+            const config = {
+                method: "GET",
+                url: `${serverURL}/student`,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+            };
+
+            const response = await axios(config);
+            setStudents(response.data);
+
+        } catch (error) {
+            console.error("Error fetching students:", error);
+            toast.error("Failed to fetch students.");
+        }
+    };
+
+    // Create Student
+    const createStudent = async (name, email, password, classId, sectionId) => {
+        try {
+          const config = {
+            method: "POST",
+            url: `${serverURL}/student/createStudent`, // Assuming your API endpoint is /students
+            headers: {
+              "Authorization": `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              name,
+              email,
+              password,
+              classId,
+              sectionId,
+            },
+          };
+      
+          const response = await axios(config);
+      
+          toast.success("Student created successfully!");
+           
+      
+        } catch (error) {
+          console.error("Error creating student:", error);
+          if (error.response.data) {
+            toast.error(error.response.data); 
+          } else {
+            toast.error("Error creating student.");
+          }
+        }
+      };
+      
+
     // Edit Student
     // Delete Student
+    const deleteStudent = async (userId) => {
+        try {
+            const config = {
+                method: "POST",
+                url: `${serverURL}/student/deleteStudent`,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    id: userId,
+                },
+            };
+
+            await axios(config);
+            await getStudents();
+            toast.success("Students deleted!");
+        } catch (error) {
+            console.error("Error deleting students:", error);
+            toast.error("Failed to delete students");
+        }
+    };
 
     // Assignment
+    const [assignments,setAssignments] = useState();
+
 
     // Get Assignment
+    const getAssignmnets = async () => {
+        try {
+            // Convert filters object to query string (e.g., ?className=10A&subject=Math)
+            // const queryString = new URLSearchParams(filters).toString();
+    
+            const config = {
+                method: "GET",
+                url: `${serverURL}/assignment`, // Modify URL path as needed
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+            };
+    
+            // Fetch assignments based on filters
+            const response = await axios(config);
+            console.log(response.data);
+    
+            // Assuming response.data contains the list of assignments
+            setAssignments(response.data);  // Set the filtered assignments to state
+    
+        } catch (error) {
+            console.error("Error fetching assignments:", error);
+            toast.error("Failed to fetch assignments.");
+        }
+    };
+    const getFilteredAssignments = async () => {
+        try {
+            const config = {
+                method: "GET",
+                url: `${serverURL}/assignment/filtered`, // Modify URL path as needed
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+            };
+    
+            // Fetch assignments based on filters
+            const response = await axios(config);
+            // Assuming response.data contains the list of assignments
+            setAssignments(response.data);  // Set the filtered assignments to state
+    
+        } catch (error) {
+            // setAssignments();  // Set the filtered assignments to state
+    
+            console.error("Error fetching assignments:", error);
+            toast.error("Failed to fetch assignments.");
+        }
+    };
+    const getFilteredAssignment = async (id) => {
+        try {
+            const config = {
+                method: "GET",
+                url: `${serverURL}/assignment/getAssignment`, // Adjust this endpoint if needed
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,  // Send token in the header
+                },
+                params: {  // Pass the id as a query parameter (assuming the backend supports it)
+                    id: id,
+                }
+            };
+        
+            // Fetch assignments based on the id filter
+            const response = await axios(config);
+        
+            if (response.data) {
+                setAssignments(response.data);
+                return response.data;  // Set the assignments data to your state
+            } else {
+                toast.error("No assignments found for this ID.");
+            }
+        } catch (error) {
+            console.error("Error fetching assignments:", error);
+            toast.error("Failed to fetch assignments.");
+        }
+    };
     // Create Assignment
+    const createAssignment = async (assignmentData) => {
+        try {
+          const config = {
+            method: "POST",
+            url: `${serverURL}/assignment/create`, // Replace with your actual endpoint
+            headers: {
+              "Authorization": `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+            data: assignmentData, // Payload containing assignment details
+          };
+      
+          await axios(config);
+          toast.success("Assignment created successfully!");
+        } catch (error) {
+          console.error("Error creating assignment:", error);
+          toast.error("Failed to create assignment");
+        }
+      };
+      
+      const updateAssignmentStudents = async (assignmentId, updatedStudents) => {
+        try {
+            const config = {
+                method: "POST",
+                url: `${serverURL}/assignment/updateAssignmentStudents`, // Adjust endpoint if needed
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send token in the header
+                    "Content-Type": "application/json", // Ensure content type is JSON
+                },
+                data: {
+                    id: assignmentId, // Assignment ID to identify the record
+                    students: updatedStudents, // Updated students data
+                },
+            };
+    
+            // Send a request to update the students in the assignment
+            const response = await axios(config);
+    
+            if (response.data) {
+                toast.success("Assignment students updated successfully!");
+                return response.data; // Optionally return updated data if needed
+            } else {
+                toast.error("Failed to update assignment students.");
+            }
+        } catch (error) {
+            console.error("Error updating assignment students:", error);
+            toast.error("Error occurred while updating students.");
+            throw error; // Rethrow error to handle it in calling code if needed
+        }
+    };
+    
     // Edit Assignment
     // Delete Assignment
 
+    // evaluator
+    const Evaluate = async (assignmentId) => {
+        try {
+            const config = {
+                method: "POST",
+                url: `${serverURL}/assignment/EvaluateWithAI`, // Adjust endpoint if needed
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send token in the header
+                    "Content-Type": "application/json", // Ensure content type is JSON
+                },
+                data: {
+                    assignmentId: assignmentId, // Assignment ID to identify the record
+                },
+            };
+    
+            // Send a request to update the students in the assignment
+            const response = await axios(config);
+    
+            if (response.data) {
+                toast.success("Evaluated ");
+                return response.data; // Optionally return updated data if needed
+            } else {
+                toast.error("Evaluation Failed .");
+            }
+        } catch (error) {
+            console.error("Evaluation Failed .:", error);
+            toast.error("Evaluation Failed .");
+            throw error; // Rethrow error to handle it in calling code if needed
+        }
+    };
+    //pdf to image converter
+    
+    const convertPDFToImage = async (file: any) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const config = {
+                method: "POST",
+                url: `${serverURL}/pdfimg/convert-pdf`,
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                },
+                data: formData,
+            };
+
+            console.log(Array.from(formData.entries()));
+
+            // Send the request to convert the PDF
+            const response = await axios(config);
+
+            console.log("Response from converted PDF to Image:");
+            console.log(response.data);
+
+            // Convert the response to File array
+            const files = response.data.map((fileData: any, index: number) => {
+                // Convert the object to a Uint8Array
+                const byteArray = new Uint8Array(Object.values(fileData));
+
+                // Create a Blob from the Uint8Array
+                const blob = new Blob([byteArray], { type: "image/png" }); // Assuming the images are PNGs
+
+                // Create a File object from the Blob
+                return new File([blob], `converted_image_${index + 1}.png`, { type: "image/png" });
+            });
+
+            return files; // Return the array of File objects
+        } catch (error) {
+            console.error("Error converting PDF to images:", error);
+            toast.error("Failed to convert PDF to images.");
+            return []; // Return an empty array in case of error
+        }
+    };
 
 
 
@@ -453,9 +818,9 @@ function Context({ children }: { children: React.ReactNode }) {
                 setSectionName,
                 sectionDescription,
                 setSectionDescription,
-                editSectionName,setEditSectionName,editSectionDescription,setEditSectionDescription,
-                createSection,deleteSection,editSection,
-                
+                editSectionName, setEditSectionName, editSectionDescription, setEditSectionDescription,
+                createSection, deleteSection, editSection,
+
                 // Section
                 subjects,
                 setSubjects,
@@ -466,22 +831,30 @@ function Context({ children }: { children: React.ReactNode }) {
                 setSubjectName,
                 subjectDescription,
                 setSubjectDescription,
-                editSubjectName,setEditSubjectName,editSubjectDescription,setEditSubjectDescription,
-                createSubject,deleteSubject,editSubject,
+                editSubjectName, setEditSubjectName, editSubjectDescription, setEditSubjectDescription,
+                createSubject, deleteSubject, editSubject,
                 // Class
-                
+
                 classes,
                 setClasses,
-                getClasses,
+                getClasses,getFilteredClasses,
                 classSelected,
                 setClassSelected,
                 className,
                 setClassName,
-                editClassName,setEditClassName,editClassDescription,setEditClassDescription,
-                createClass,deleteClass,editClass,
+                editClassName, setEditClassName, editClassDescription, setEditClassDescription,
+                createClass, deleteClass, editClass,
                 // Teacher
+                teachers, setTeachers, getTeachers, createTeacher,deleteTeacher,
                 // Student
+                students, setStudents, getStudents, createStudent,deleteStudent,
                 // Assignment
+                assignments,setAssignments,createAssignment,getFilteredAssignments,getFilteredAssignment,getAssignmnets,updateAssignmentStudents,
+
+                //pdf to image
+                convertPDFToImage,
+                //evalutor
+                Evaluate,
             }}
         >
             {children}

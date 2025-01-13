@@ -137,7 +137,7 @@ const TableComponent = ({ data, visibleColumns, editable, deletable, action, mod
   };
 
   return (
-    <div className="relative  shadow-md sm:rounded-lg">
+    <div className="relative shadow-md sm:rounded-lg">
 
       <Card className="flex space-x-2 w-full" spacing={3} ><CardContent className="w-full">
         <div className="flex items-center justify-between mb-4 w-full print">
@@ -165,7 +165,7 @@ const TableComponent = ({ data, visibleColumns, editable, deletable, action, mod
         </div>
 
       </CardContent></Card>
-      <Card><CardContent>
+      <Card><CardContent className='overflow-y-auto'>
         {columns.length > 0 ?
           <TableContainer className="rounded-lg overflow-hidden">
             <Table>
@@ -199,9 +199,7 @@ const TableComponent = ({ data, visibleColumns, editable, deletable, action, mod
               <TableBody className=''>
                 {paginatedData.map((row, index) => (
                   <TableRow key={index} className="border-b border-gray-200">
-                    {/* {Object.values(row).map((value) => (
-                  <TableCell className="px-4 py-3 text-sm">{value}</TableCell>
-                ))} */}
+                  
                     <TableCell className="px-4 py-3 text-sm">
                       {index + 1} {/* Add serial number */}
                     </TableCell>
@@ -211,7 +209,7 @@ const TableComponent = ({ data, visibleColumns, editable, deletable, action, mod
                       </TableCell>
                     ))}
                     {editable && (
-                      <TableCell className="px-4 py-3 text-sm gap-2 print">
+                      <TableCell className="px-4 py-3 flex flex-nowrap  text-sm gap-2 print">
                         <label htmlFor={`edit${modelName}_modal`}  className="btn btn-circle m-2 btn-secondary" onClick={() => action(row)}>
 
                           <EditIcon />
