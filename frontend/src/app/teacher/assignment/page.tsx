@@ -49,13 +49,17 @@ export default function AssignmentList() {
             </Link>
             <Link underline="hover" color="inherit" href="/teacher/assignments">Assignments</Link>
           </Breadcrumbs>
+          <div className="flex justify-start gap-4 flex-wrap p-2">
+            <div>
+              <Link href="/teacher/assignment/create" className="btn btn-secondary" >+ Create Assignment</Link>
+            </div>
+          </div>
         </Box>
         
         <AssignmentTable
           data={assignments}
           editable={true}
           deletable={true}
-
           visibleColumns={columns}
         />
       </div>

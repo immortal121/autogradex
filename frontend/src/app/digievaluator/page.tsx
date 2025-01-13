@@ -24,7 +24,7 @@ import {
 
 import {
   Undo,
-  Redo, TextFields,ArrowBack 
+  Redo, TextFields, ArrowBack
 } from '@mui/icons-material';
 import {
   Box,
@@ -34,9 +34,9 @@ import {
   Typography,
   Grid,
   Button,
-  IconButton, TextField,Select, 
-  InputLabel, 
-  FormControl, 
+  IconButton, TextField, Select,
+  InputLabel,
+  FormControl,
 } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -123,61 +123,19 @@ export default function Home({
     showMenu,
     setShowMenu,
     user,
-    selectedTab,
     setSelectedTab,
-    limits,
     evaluators,
     selectedEvaluator,
     setSelectedEvaluator,
-    newEvaluatorTitle,
-    setNewEvaluatorTitle,
-    newEvaluatorQuestionPapers,
-    setNewEvaluatorQuestionPapers,
-    newEvaluatorAnswerKeys,
-    setNewEvaluatorAnswerKeys,
     classes,
     selectedClass,
-    setSelectedClass,
-    getEvaluators,
     getClasses,
-    createEvaluator,
-    deleteEvaluator,
     getStudents,
-    newEvaluatorClassId,
-    setNewEvaluatorClassId,
-    setEditClassName,
-    setEditClassSection,
-    setEditClassSubject,
-    editClassName,
-    editClassSection,
-    editClassSubject,
-    editClass,
-    createClass,
-    deleteClass,
-    newClassName,
-    setNewClassName,
-    newClassSection,
-    setNewClassSection,
-    newClassSubject,
-    setNewClassSubject,
-    editEvaluatorTitle,
-    setEditEvaluatorTitle,
-    editEvaluatorClassId,
-    setEditEvaluatorClassId,
-    editEvaluator,
-    ongoingEvaluation,
-    getEvaluationProgressSSE,
-    convertPDFToImage
   } = useContext(MainContext);
 
   const pathname = usePathname();
-  const newClassModalRef = useRef<any | null>(null);
 
   useEffect(() => {
-    getClasses();
-    getEvaluators();
-
-    pathname === "/home/classes" ? setSelectedTab(1) : setSelectedTab(0);
 
     if (typeof window !== 'undefined') {
       if (!localStorage.getItem("token")) {
@@ -192,20 +150,6 @@ export default function Home({
     }
   }, [selectedClass]);
 
-  const [initial, setInitial] = useState(true);
-  useEffect(() => {
-    if (initial) {
-      setInitial(false);
-      setSelectedEvaluator(parseInt(localStorage.getItem("selectedEvaluator") || "-1"));
-    }
-    else {
-      localStorage.setItem("selectedEvaluator", selectedEvaluator.toString());
-    }
-
-    if (selectedEvaluator !== -1 && evaluators[selectedEvaluator]?._id) {
-      getEvaluationProgressSSE(evaluators[selectedEvaluator]._id);
-    }
-  }, [selectedEvaluator, evaluators]);
   // 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
@@ -238,8 +182,8 @@ export default function Home({
   const mobileMenuId = 'primary-search-account-menu-mobile';
 
 
-  const [selectedStudent, setSelectedStudent] = useState(1); 
-  const students = [1, 2, 3]; 
+  const [selectedStudent, setSelectedStudent] = useState(1);
+  const students = [1, 2, 3];
 
   const handleStudentSelection = (event) => {
     setSelectedStudent(event.target.value);
@@ -294,24 +238,24 @@ export default function Home({
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
-      
+
       <MenuItem>
-      <FormControl sx={{ m: 1, minWidth: 120 }}>
-            <InputLabel id="student-select-label">Student</InputLabel>
-            <Select
-              labelId="student-select-label"
-              id="student-select"
-              value={selectedStudent} // Default to first student
-              onChange={handleStudentSelection}
-              label="Student"
-            >
-              {students.map((student) => (
-                <MenuItem key={student} value={student}>
-                  Student {student}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <FormControl sx={{ m: 1, minWidth: 120 }}>
+          <InputLabel id="student-select-label">Student</InputLabel>
+          <Select
+            labelId="student-select-label"
+            id="student-select"
+            value={selectedStudent} // Default to first student
+            onChange={handleStudentSelection}
+            label="Student"
+          >
+            {students.map((student) => (
+              <MenuItem key={student} value={student}>
+                Student {student}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </MenuItem>
       <Divider />
       <MenuItem >
@@ -350,7 +294,7 @@ export default function Home({
       if (moreMenuOpen) setMoreMenuOpen(false);
     }}>
       {/* Sidebar */}
-      <div className={'print  bg-white flex flex-col p-4 min-w-[275px] max-w-[15vw] h-full rounded-md ' + (!showMenu ? "max-sm:hidden " : "max-sm:fixed max-sm:w-full max-sm:h-full max-sm:max-w-none max-sm:z-[1200] ")}>
+      <div className={'print custom-scrollbar  bg-white flex flex-col p-4 min-w-[320px] max-w-[15vw] h-full rounded-md ' + (!showMenu ? "max-sm:hidden " : "max-sm:fixed max-sm:w-full max-sm:h-full max-sm:max-w-none max-sm:z-[1200] ")}>
         <div className="flex justify-between md:justify-center items-center max-sm:mb-4">
           <Link href="/"><div className="mb-5 font-semibold max-sm:mb-3" onClick={() => setSelectedEvaluator(-1)}>
             <Image src={Logo} height={50} alt="autogradex" />
@@ -505,32 +449,35 @@ export default function Home({
 
             <Box sx={{ flexGrow: 1 }} />
             <Box className="items-center" sx={{ display: { xs: 'none', md: 'block' } }}>
-            <FormControl sx={{ m: 2, minWidth: 200 }}>
-            <InputLabel id="student-select-label">Student</InputLabel>
-            <Select
-              labelId="student-select-label"
-              id="student-select"
-              value={selectedStudent} // Default to first student
-              onChange={handleStudentSelection}
-              label="Student"
-            >
-              {students.map((student) => (
-                <MenuItem key={student} value={student}>
-                  Student {student}
-                </MenuItem>
-              ))}
-            </Select>
-            
-          </FormControl>
-          <Link href="/home" >
-        <ListItemIcon>
-          <ArrowBack fontSize="small" color="error" />
-        </ListItemIcon>
-        Back To Dashboard
-      </Link>
+              <FormControl sx={{ m: 2, minWidth: 200 }}>
+                <InputLabel id="student-select-label">Student</InputLabel>
+                <Select
+                  labelId="student-select-label"
+                  id="student-select"
+                  value={selectedStudent} // Default to first student
+                  onChange={handleStudentSelection}
+                  label="Student"
+                >
+                  {students.map((student) => (
+                    <MenuItem key={student} value={student}>
+                      Student {student}
+                    </MenuItem>
+                  ))}
+                </Select>
+
+              </FormControl>
+              <FormControl>
+              <Link href="/" >
+                <ListItemIcon>
+                  <ArrowBack fontSize="small" color="error" />
+                </ListItemIcon>
+                Back To Dashboard
+              </Link>
+
+              </FormControl>
 
             </Box>
-            
+
             <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
               <IconButton
                 size="large"
@@ -549,211 +496,10 @@ export default function Home({
           {renderMobileMenu}
           {renderMenu}
         </AppBar>
-        {/* nav bar end */}
-        {/* Evaluator */}
-        <div className='select-none flex flex-col items-center pt-5 w-full h-full bg-[#F5F5F5] overflow-x-auto'>
+        <Box className="bg-white h-screen">
+        </Box>
+      </div>
 
-        </div>
-        {/* Evaluator */}
-      </div>
-      {/* New Evaluator Modal */}
-      <input type="checkbox" id="newevaluator_modal" className="modal-toggle" />
-      <div className="modal" role="dialog">
-        <div className="modal-box">
-          <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> New Evaluator</h3>
-          <p className="flex items-center py-4"><FiType className='mr-2' />Title</p>
-          <input className="input input-bordered w-full" placeholder="What's the name of the exam / evaluator?" type="text" onChange={(x) => setNewEvaluatorTitle(x.target.value)} value={newEvaluatorTitle} />
-          <p className="flex items-center py-4"><FiUsers className='mr-2' />Class</p>
-          {classes?.length === 0 ? <div role="alert" className="alert shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <div>
-              <h3 className="font-bold">No Classes!</h3>
-              <div className="text-xs">You need to create a class to proceed.</div>
-            </div>
-            <label htmlFor="newevaluator_modal" onClick={() => { newClassModalRef.current.click(); }} className="btn btn-primary btn-sm">Create Class</label>
-          </div> : <select className="select select-bordered w-full" value={newEvaluatorClassId} onChange={(x) => setNewEvaluatorClassId(x.target.value)}>
-            <option disabled value={"-1"}>Select class</option>
-            {
-              classes?.map((class_: any, i: any) => (
-                <option key={i} value={class_._id}>{class_?.subject} | {class_?.name} {class_?.section}</option>
-              ))
-            }
-          </select>}
-          <p className="flex items-center py-4"><FiFileText className='mr-2' />Upload question paper(s)</p>
-          {newEvaluatorQuestionPapers.length > 0 ?
-            <div className="flex flex-wrap">{
-              newEvaluatorQuestionPapers.map((file: string, i: number) => {
-                return <img key={i} src={file} className="border cursor-pointer w-20 h-20 object-cover rounded-md mr-2 mb-2" onClick={() => window.open(file)} />
-              })
-            }</div>
-            : <div className="flex">
-              <UploadButton
-                endpoint="media"
-                onBeforeUploadBegin={async (files) => {
-                  var pdfFiles = files.filter((file) => file.type === "application/pdf");
-                  var otherFiles = files.filter((file) => file.type !== "application/pdf");
-
-                  if (pdfFiles.length === 0) return files;
-
-                  for (const file of pdfFiles) {
-                    const images = await convertPDFToImage(file);
-                    otherFiles.push(...images);
-                  }
-
-                  return otherFiles;
-                }}
-                onClientUploadComplete={(res) => {
-                  var files = [];
-                  for (const file of res) {
-                    files.push(file.url);
-                  }
-                  setNewEvaluatorQuestionPapers([...files]);
-                }}
-                onUploadError={(error: Error) => {
-                  alert(`ERROR! ${error.message}`);
-                }}
-              />
-            </div>}
-          <p className="flex items-center py-4"><FiKey className='mr-2' />Upload answer key / criteria</p>
-          {newEvaluatorAnswerKeys.length > 0 ?
-            <div className="flex flex-wrap">{
-              newEvaluatorAnswerKeys.map((file: string, i: number) => {
-                return <img key={i} src={file} className="border cursor-pointer w-20 h-20 object-cover rounded-md mr-2 mb-2" onClick={() => window.open(file)} />
-              })
-            }</div>
-            : <div className="flex">
-              <UploadButton
-                endpoint="media"
-                onBeforeUploadBegin={async (files) => {
-                  var pdfFiles = files.filter((file) => file.type === "application/pdf");
-                  var otherFiles = files.filter((file) => file.type !== "application/pdf");
-
-                  if (pdfFiles.length === 0) return files;
-
-                  for (const file of pdfFiles) {
-                    const images = await convertPDFToImage(file);
-                    otherFiles.push(...images);
-                  }
-
-                  return otherFiles;
-                }}
-                onClientUploadComplete={(res) => {
-                  var files = [];
-                  for (const file of res) {
-                    files.push(file.url);
-                  }
-                  setNewEvaluatorAnswerKeys([...files]);
-                }}
-                onUploadError={(error: Error) => {
-                  alert(`ERROR! ${error.message}`);
-                }}
-              />
-            </div>}
-          <div className="modal-action">
-            <label htmlFor="newevaluator_modal" className="btn">Cancel</label>
-            <label htmlFor="newevaluator_modal" className="btn btn-primary" onClick={() => createEvaluator()}>Create Evaluator</label>
-          </div>
-        </div>
-        <label className="modal-backdrop" htmlFor="newevaluator_modal">Cancel</label>
-      </div>
-      {/* Edit Evaluator Modal */}
-      <input type="checkbox" id="editevaluator_modal" className="modal-toggle" />
-      <div className="modal" role="dialog">
-        <div className="modal-box">
-          <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> Edit Evaluator</h3>
-          <p className="flex items-center py-4"><FiType className='mr-2' />Title</p>
-          <input className="input input-bordered w-full" placeholder="What's the name of the exam / evaluator?" type="text" onChange={(x) => setEditEvaluatorTitle(x.target.value)} value={editEvaluatorTitle} />
-          <p className="flex items-center py-4"><FiUsers className='mr-2' />Class</p>
-          <select className="select select-bordered w-full" value={editEvaluatorClassId} onChange={(x) => setEditEvaluatorClassId(x.target.value)}>
-            <option disabled value={"-1"}>Select class</option>
-            {
-              classes?.map((class_: any, i: any) => (
-                <option key={i} value={class_._id}>{class_?.subject} | {class_?.name} {class_?.section}</option>
-              ))
-            }
-          </select>
-          <div className="modal-action">
-            <label htmlFor="editevaluator_modal" className="btn">Cancel</label>
-            <label htmlFor="editevaluator_modal" className="btn btn-primary" onClick={() => editEvaluator()}>Save</label>
-          </div>
-        </div>
-        <label className="modal-backdrop" htmlFor="editevaluator_modal">Cancel</label>
-      </div>
-      {/* Delete Evaluator Modal */}
-      <input type="checkbox" id="deleteevaluator_modal" className="modal-toggle" />
-      <div className="modal">
-        <div className="modal-box">
-          <h3 className="flex items-center font-bold text-lg"><FiTrash className="mr-1" /> Delete Evaluator</h3>
-          <p className="py-4">Are you sure want to delete this evaluator?</p>
-          <div className="modal-action">
-            <label htmlFor="deleteevaluator_modal" className="btn">Cancel</label>
-            <label htmlFor="deleteevaluator_modal" className="btn btn-error" onClick={() => deleteEvaluator()}>Delete</label>
-          </div>
-        </div>
-        <label className="modal-backdrop" htmlFor="deleteevaluator_modal">Cancel</label>
-      </div>
-      {/* Evaluator Limit Exceed Modal */}
-      <input type="checkbox" id="limitexceed_modal" className="modal-toggle" />
-      <div className="modal">
-        <div className="modal-box">
-          <h3 className="flex items-center font-bold text-lg"><FiInfo className="mr-1" /> Evaluator limit exceeded</h3>
-          <p className="py-4">You have reached the maximum limit of evaluators.<br />You can shop for more evaluators or delete existing ones to create new ones.</p>
-          <div className="modal-action">
-            <label htmlFor="limitexceed_modal" className="btn">Cancel</label>
-            <label htmlFor="limitexceed_modal" className="btn btn-primary" onClick={() => window.location.href = "/shop"}><FiShoppingCart /> Shop</label>
-          </div>
-        </div>
-        <label className="modal-backdrop" htmlFor="limitexceed_modal">Cancel</label>
-      </div>
-      {/* New Class Modal */}
-      <input type="checkbox" id="newclass_modal" className="modal-toggle" />
-      <div className="modal" role="dialog">
-        <div className="modal-box">
-          <h3 className="flex items-center font-bold text-lg"><FiPlusCircle className="mr-1" /> New Class</h3>
-          <p className="flex items-center py-4"><FiType className='mr-2' />Class Name</p>
-          <input className="input input-bordered w-full" placeholder="Class Name" type="text" onChange={(x) => setNewClassName(x.target.value)} value={newClassName} />
-          <p className="flex items-center py-4"><FiUsers className='mr-2' />Section</p>
-          <input className="input input-bordered w-full" placeholder="Section" type="text" onChange={(x) => setNewClassSection(x.target.value)} value={newClassSection} />
-          <p className="flex items-center py-4"><FiBook className='mr-2' />Subject</p>
-          <input className="input input-bordered w-full" placeholder="Subject" type="text" onChange={(x) => setNewClassSubject(x.target.value)} value={newClassSubject} />
-          <div className="modal-action">
-            <label htmlFor="newclass_modal" className="btn">Cancel</label>
-            <label htmlFor="newclass_modal" className="btn btn-primary" onClick={() => createClass()}>Create Class</label>
-          </div>
-        </div>
-        <label className="modal-backdrop" htmlFor="newclass_modal">Cancel</label>
-      </div>
-      {/* Delete Class Modal */}
-      <input type="checkbox" id="deleteclass_modal" className="modal-toggle" />
-      <div className="modal">
-        <div className="modal-box">
-          <h3 className="flex items-center font-bold text-lg"><FiTrash className="mr-1" /> Delete Class</h3>
-          <p className="py-4">Are you sure want to delete this class?</p>
-          <div className="modal-action">
-            <label htmlFor="deleteclass_modal" className="btn">Cancel</label>
-            <label htmlFor="deleteclass_modal" className="btn btn-error" onClick={() => deleteClass()}>Delete</label>
-          </div>
-        </div>
-        <label className="modal-backdrop" htmlFor="deleteclass_modal">Cancel</label>
-      </div>
-      {/* Edit Class Modal */}
-      <input type="checkbox" id="editclass_modal" className="modal-toggle" />
-      <div className="modal">
-        <div className="modal-box">
-          <h3 className="flex items-center font-bold text-lg"><FiEdit className="mr-1" /> Edit Class</h3>
-          <p className="flex items-center py-4"><FiType className='mr-2' />Class Name</p>
-          <input className="input input-bordered w-full" placeholder="Class Name" type="text" onChange={(x) => setEditClassName(x.target.value)} value={editClassName} />
-          <p className="flex items-center py-4"><FiUsers className='mr-2' />Section</p>
-          <input className="input input-bordered w-full" placeholder="Section" type="text" onChange={(x) => setEditClassSection(x.target.value)} value={editClassSection} />
-          <p className="flex items-center py-4"><FiBook className='mr-2' />Subject</p>
-          <input className="input input-bordered w-full" placeholder="Subject" type="text" onChange={(x) => setEditClassSubject(x.target.value)} value={editClassSubject} />
-          <div className="modal-action">
-            <label htmlFor="editclass_modal" className="btn">Cancel</label>
-            <label htmlFor="editclass_modal" className="btn btn-primary" onClick={() => editClass()}>Save</label>
-          </div>
-        </div>
-        <label className="modal-backdrop" htmlFor="editclass_modal">Cancel</label>
-      </div>
     </main >
   );
 }

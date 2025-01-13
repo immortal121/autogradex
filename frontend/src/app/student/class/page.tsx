@@ -60,16 +60,20 @@ export default function Class() {
             <Link underline="hover" color="inherit" href="/admin/Class">Class</Link>
 
           </Breadcrumbs>
-          <div className="flex justify-start gap-4 flex-wrap p-2">
+          {/* <div className="flex justify-start gap-4 flex-wrap p-2">
             <div>
               <Link href="/admin/class/create" className="btn btn-secondary" >+ Create Class</Link>
             </div>
             <div>
               <Link href="#" className="btn btn-secondary" > Edit Class</Link>
             </div>
-          </div>
+          </div> */}
         </Box>
-        <TableComponent visibleColumns={['name', 'sections','subjects','studentCount']} data={classes} editable={true} deletable={true} action={setRowData} modelName={'section'} />
+        <Box className="bg-white flex flex-col gap-4 h-full p-4 mb-2"  >
+          <Typography variant="h4" component="h2" gutterBottom>
+            Student Can get Class , Resources share by Teachers
+          </Typography>
+        </Box>
 
         </div>
     </>
