@@ -122,7 +122,7 @@ export default function Main() {
   return <main className="flex flex-col realtive">
     {videoPreview && <div className='fixed z-[999] video-preview w-full h-full bg-black p-20' onClick={() => setVideoPreview(false)}>
       <FiX className='text-4xl absolute top-5 right-5 text-white cursor-pointer' onClick={() => setVideoPreview(false)} />
-      <iframe allowFullScreen className='w-full h-full' src="https://www.youtube.com/embed/hVurBDPrPOQ" title="EvaluateAI | AI-Powered Answer Sheet Evaluator | SaaS Platform | Envato Codecanyon | Full Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+      <iframe allowFullScreen className='w-full h-full' src="https://www.youtube.com/embed/hVurBDPrPOQ" title="AutoGradeX | AI-Powered Answer Sheet Evaluator | SaaS Platform | Envato Codecanyon | Full Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
     </div>}
     <div id="home" className='min-h-screen w-screen bg-gradient-to-b from-purple-400 via-violet-500 to-indigo-600 flex flex-col justify-center items-center'>
       <div className={"flex z-50 items-center justify-between fixed top-0 w-full p-3 md:px-10 duration-200 backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] " + (color ? "bg-white" : "text-white")}>

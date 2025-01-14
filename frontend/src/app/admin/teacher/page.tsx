@@ -40,6 +40,7 @@ export default function Class() {
 
     deleteTeacher(rowData._id);
   };
+  console.log("teacher:"+teachers);
 
   return (
     <>

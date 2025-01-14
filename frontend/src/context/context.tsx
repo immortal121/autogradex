@@ -442,6 +442,7 @@ function Context({ children }: { children: React.ReactNode }) {
             };
 
             const response = await axios(config);
+            setTeachers(response.data);
             return true;
 
         } catch (error) {
@@ -703,6 +704,7 @@ function Context({ children }: { children: React.ReactNode }) {
                     students: updatedStudents, // Updated students data
                 },
             };
+            console.log(updatedStudents)
     
             // Send a request to update the students in the assignment
             const response = await axios(config);

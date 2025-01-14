@@ -153,7 +153,7 @@ export default function Class() {
                 <FormLabel component="legend" className="mb-4">Select Teaching Assignments</FormLabel>
                 <Grid container spacing={2} className="w-full">
                   {assignments.map((assignment, index) => (
-                     <Grid container size={12} className="w-full">
+                     <Grid container key={index} size={12} className="w-full">
               
                       <Grid item  size={{ xs: 12, lg: 4 }}>
                         <FormControl required fullWidth>

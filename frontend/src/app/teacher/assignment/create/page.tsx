@@ -24,6 +24,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { UploadDropzone } from "@/utils/uploadthing";
+import Image from "next/image";
 
 export default function CreateAssignment() {
   const {
@@ -190,7 +191,7 @@ export default function CreateAssignment() {
               View PDF
             </Button>
           ) : (
-            <img
+            <Image
               src={file.url}
               alt="Preview"
               className="w-20 h-20 object-cover rounded-md cursor-pointer"

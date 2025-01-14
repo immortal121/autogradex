@@ -4,12 +4,15 @@ import { MainContext } from "@/context/context";
 import ScriptTable from "@/utils/ScriptTable";
 import { toast } from "react-toastify";
 import { useParams } from "next/navigation";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+
 import {
   Box,
   Typography,
   Button,
   Stack,
 } from "@mui/material";
+import Image from "next/image";
 
 export default function AssignmentView() {
   const { id } = useParams(); // Assignment ID from the URL
@@ -34,6 +37,7 @@ export default function AssignmentView() {
             uploaded: item.uploaded || false,
             answerScript: item.answerScript || [],
             marksScored: item.marksScored || null,
+            comments:item.comments||null,
             evaluationStatus: item.evaluationStatus || "Pending",
           }))
         );
@@ -69,16 +73,41 @@ export default function AssignmentView() {
   };
 
   // Function to render evaluation results or marks list
-  const renderMarksList = () => {
-    return students.map((student) => (
-      <Box key={student.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography>{student.name}</Typography>
-        <Typography>{student.marksScored ? student.marksScored : "Not Evaluated"}</Typography>
-        <Button variant="outlined" color="primary" onClick={() => console.log(`View marks for ${student.name}`)}>
-          View Marks
-        </Button>
-      </Box>
-    ));
+  const renderMarksTable = () => {
+    return (
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>S.No</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Marks Scored</TableCell>
+              <TableCell>Comments</TableCell>
+              <TableCell>Action</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {students.map((student, index) => (
+              <TableRow key={student.id}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{student.name}</TableCell>
+                <TableCell>{student.marksScored ? student.marksScored : "Not Evaluated"}</TableCell>
+                <TableCell>{student.comments ? student.comments : "No Comments"}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => console.log(`View marks for ${student.name}`)}
+                  >
+                    View Marks
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
   };
 
   const visibleColumns = ["sno", "name", "attendance", "uploaded"]; // Define visible columns
@@ -147,7 +176,7 @@ export default function AssignmentView() {
           <Typography variant="h6" component="h3">
             Marks List
           </Typography>
-          {renderMarksList()}
+          {renderMarksTable()}
         </Box>
       ) : null}
 
@@ -182,7 +211,7 @@ export default function AssignmentView() {
 const FilePreview = ({ links }) => (
   <div className="flex flex-wrap mt-2">
     {links.map((link, index) => (
-      <img
+      <Image
         key={index}
         src={link}
         alt="Preview"
