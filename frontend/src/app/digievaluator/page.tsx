@@ -135,14 +135,14 @@ export default function Home({
 
   const pathname = usePathname();
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (typeof window !== 'undefined') {
-      if (!localStorage.getItem("token")) {
-        window.location.href = "/login";
-      }
-    }
-  }, []);
+  //   if (typeof window !== 'undefined') {
+  //     if (!localStorage.getItem("token")) {
+  //       window.location.href = "/login";
+  //     }
+  //   }
+  // }, []);
 
   useEffect(() => {
     if (selectedClass !== -1) {

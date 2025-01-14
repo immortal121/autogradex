@@ -11,7 +11,7 @@ import Logo from "../../../public/autograde.jpeg";
 import * as React from 'react';
 
 import {ListItem,ListItemAvatar,ListItemText} from "@mui/material";
-import useAuth from '@/utils/useAuth'; // Import the hook
+// import useAuth from '@/utils/useAuth'; // Import the hook
 // 
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
