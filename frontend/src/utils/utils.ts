@@ -1,5 +1,6 @@
-const serverURL = "http://localhost:5000"
-const hostname = "https://evaluateai.vercel.app";
+// const serverURL = "https://v2.api.autogradex.com"
+const serverURL = "http://localhost:5005"
+const hostname = "https://autogradex.vercel.app";
 const currencySymbol = "₹";
 const appName = "AutoGradeX";
 //UploadThing

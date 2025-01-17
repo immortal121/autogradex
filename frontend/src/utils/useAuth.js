@@ -7,6 +7,8 @@ const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return; // Ensure it runs only on the client side
+
     // Fetch the role from localStorage on client-side
     const role = localStorage.getItem('type');
     setUserRole(role);
@@ -14,9 +16,13 @@ const useAuth = () => {
   }, []);
 
   useEffect(() => {
-    if (isLoading) return; // Wait until loading is complete
+    if (typeof window === 'undefined' || isLoading) return; // Ensure it runs only on the client side and wait for loading to complete
+
+    // Guard against undefined router.pathname
+    if (!router?.pathname) return;
+
     if (userRole === null || userRole === undefined) {
-      if (router.pathname === '/signup' || router.pathname === '/signin' || router.pathname === undefined) {
+      if (router.pathname === '/signup' || router.pathname === '/signin') {
         return; // Allow public pages
       } else {
         router.push('/signin'); // Redirect unauthenticated users
@@ -47,7 +53,7 @@ const useAuth = () => {
           router.push('/signin'); // Redirect for unknown roles
       }
     }
-  }, [userRole, isLoading, router.pathname]);
+  }, [userRole, isLoading, router?.pathname]); // Ensure safe access to router.pathname
 
   return null;
 };

@@ -214,6 +214,8 @@ const FilePreview = ({ links }) => (
       <Image
         key={index}
         src={link}
+        width="20"
+        height="20"
         alt="Preview"
         className="w-20 h-20 object-cover rounded-md cursor-pointer"
         onClick={() => window.open(link, "_blank")}

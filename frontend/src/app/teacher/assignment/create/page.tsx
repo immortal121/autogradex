@@ -194,6 +194,8 @@ export default function CreateAssignment() {
             <Image
               src={file.url}
               alt="Preview"
+              width="20"
+              height="20"
               className="w-20 h-20 object-cover rounded-md cursor-pointer"
               onClick={() => window.open(file.url)}
             />

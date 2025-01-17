@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { appName } from "@/utils/utils";
-import { Golos_Text } from 'next/font/google'
 import "react-toastify/dist/ReactToastify.css";
 import Head from "next/head";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
@@ -9,11 +8,6 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
 
-
-const golos = Golos_Text({
-  weight: ["400", "500", "600", "700"],
-  subsets: ['latin'],
-})
 
 export const metadata: Metadata = {
   title: appName,
@@ -47,7 +41,7 @@ export default function RootLayout({
         
         <link rel="favicon" href="/icon.png" />
       </Head>
-      <body className={golos.className}>
+      <body>
       <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)}
         />
         <AppRouterCacheProvider>   {children}</AppRouterCacheProvider></body>

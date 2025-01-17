@@ -38,7 +38,7 @@ export default function Student() {
   useEffect(() => {
     getStudents();
     getClasses();
-  }, []);
+  }, [students]);
 
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
@@ -120,7 +120,7 @@ export default function Student() {
           <div className="modal-box">
             <Box className="bg-white flex flex-col gap-4 h-full"  >
               <Typography variant="h6" component="h2" className="text-gray-800 mb-4">
-                Create New Section
+                Create New Student
               </Typography>
               <TextField
                 fullWidth
