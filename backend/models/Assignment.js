@@ -6,10 +6,10 @@ const assignmentSchema = new mongoose.Schema({
   subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
   class: { type: mongoose.Schema.Types.ObjectId, ref: 'Class', required: true },
   section: { type: mongoose.Schema.Types.ObjectId, ref: 'Section', required: true },
-  
+
   questionPaper: [{ type: String }], // URLs of uploaded question paper PDFs
   keyAnswerScript: [{ type: String }], // URLs of uploaded key answer scripts
-  
+
   assignmentStructure: [
     {
       sectionName: String, // Section I, Section II, etc.
@@ -29,28 +29,32 @@ const assignmentSchema = new mongoose.Schema({
       studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
       isAbsent: { type: Boolean, default: false }, // Absent status
       answerScript: [{ type: String }], // URLs to submitted scripts
-      evaluationStatus: { 
-        type: String, 
-        enum: ['Pending', 'Evaluated', 'Absent'], 
-        default: 'Pending' 
+      evaluationStatus: {
+        type: String,
+        enum: ['Pending', 'Evaluated', 'Absent'],
+        default: 'Pending'
       },
-      uploaded:{type:Boolean,default:false},
+      uploaded: { type: Boolean, default: false },
       evaluatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Evaluator's ID
       marksScored: { type: Number }, // Total marks scored
       marksBreakdown: [
         {
+          section: String,
           questionNo: String,
           marksGiven: Number, // Marks assigned per question
+          x: Number,
+          y: Number,
+          comment: String,
         },
       ],
       comments: { type: String }, // Evaluation comments
     },
   ],
 
-  status: { 
-    type: String, 
-    enum: ['Pending Upload', 'Evaluation Not Started', 'Evaluation In Progress', 'Completed'], 
-    default: 'Pending Upload' 
+  status: {
+    type: String,
+    enum: ['Pending Upload', 'Evaluation Not Started', 'Evaluation In Progress', 'Completed'],
+    default: 'Pending Upload'
   },
   evaluationProgress: { type: Number, min: 0, max: 100, default: 0 }, // Overall evaluation progress percentage
 

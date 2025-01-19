@@ -660,6 +660,7 @@ function Context({ children }: { children: React.ReactNode }) {
         
             if (response.data) {
                 setAssignments(response.data);
+                console.log(response.data);
                 return response.data;  // Set the assignments data to your state
             } else {
                 toast.error("No assignments found for this ID.");
@@ -710,14 +711,13 @@ function Context({ children }: { children: React.ReactNode }) {
             const response = await axios(config);
     
             if (response.data) {
-                toast.success("Assignment students updated successfully!");
+                console.log("Assignment students updated successfully!");
                 return response.data; // Optionally return updated data if needed
             } else {
-                toast.error("Failed to update assignment students.");
+                console.log("Failed to update assignment students.");
             }
         } catch (error) {
             console.error("Error updating assignment students:", error);
-            toast.error("Error occurred while updating students.");
             throw error; // Rethrow error to handle it in calling code if needed
         }
     };

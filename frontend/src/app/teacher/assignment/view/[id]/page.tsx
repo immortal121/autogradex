@@ -41,14 +41,14 @@ export default function AssignmentView() {
             evaluationStatus: item.evaluationStatus || "Pending",
           }))
         );
-        console.log(assignmentData);
       }
     };
     fetchData();
-  }, [id]);
+  }, [id,students]);
 
   // Function to handle updating the assignment table
   const handleStudentsUpdate = (updatedStudents) => {
+    console.log(updatedStudents);
     setStudents(updatedStudents);
 
     // Propagate changes to the assignment table
@@ -155,8 +155,6 @@ export default function AssignmentView() {
           <ScriptTable
             students={students}
             visibleColumns={visibleColumns}
-            editable={true}
-            action={(studentId) => console.log("Perform action for:", studentId)}
             setStudents={handleStudentsUpdate} // Pass handler to propagate changes
           />
         </Box>

@@ -20,8 +20,8 @@ import { UploadButton } from "@/utils/uploadthing";
 export default function ScriptTable({
   students, // Passed data from parent
   visibleColumns,
-  editable,
-  action,
+  // editable,
+  // action,
   setStudents, // To update students state from parent
 }) {
   const [filteredData, setFilteredData] = useState(students);
@@ -125,7 +125,7 @@ export default function ScriptTable({
               {visibleColumns.map((col) => (
                 <TableCell key={col}>{col}</TableCell>
               ))}
-              {editable && <TableCell>Actions</TableCell>}
+              {/* {editable && <TableCell>Actions</TableCell>} */}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -199,7 +199,7 @@ export default function ScriptTable({
                     )}
                   </TableCell>
                 ))}
-                {editable && (
+                {/* {editable && (
                   <TableCell>
                     <Button
                       variant="outlined"
@@ -208,7 +208,7 @@ export default function ScriptTable({
                       Action
                     </Button>
                   </TableCell>
-                )}
+                )} */}
               </TableRow>
             ))}
           </TableBody>

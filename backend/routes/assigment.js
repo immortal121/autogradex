@@ -195,20 +195,52 @@ router.get("/getAssignment", validate, async (req, res) => {
     if (!assignment) {
       return res.status(404).send({ error: "Assignment not found" });
     }
+    
+    // Check if all students are either absent or have uploaded the answer scripts
+    const allStudentsUploadedOrAbsent = assignment.students.every(
+      (student) => student.isAbsent || student.uploaded
+    );
 
+    if (allStudentsUploadedOrAbsent) {
+      // If all students have uploaded or are absent, set the status to "Evaluation Not Started"
+      assignment.status = "Evaluation Not Started";
+      
+    }else{
+      assignment.status = "Pending Upload";
+      
+    }
+    await assignment.save(); // Save the status update
+
+
+    const uassignment = await Assignment.findById(req.query.id)
+      .populate('subject')  // Populate the related subject
+      .populate('class')    // Populate the related class
+      .populate('section')  // Populate the related section
+      .populate({
+        path: 'students.studentId',  // Populate the 'studentId' field in students array
+        select: 'name email rollNo'  // Specify the fields you want to populate from the User model
+      })
+      .exec();
+
+    // Check if the assignment exists
+    if (!uassignment) {
+      return res.status(404).send({ error: "Assignment not found" });
+    }
+    
     // Normalize the assignment data to send in the response
     const normalizedData = {
-      id: assignment._id.toString(),
-      name: assignment.name || "Untitled Assignment",
-      subject: assignment.subject ? assignment.subject.name : "N/A",
-      class: assignment.class ? assignment.class.name : "N/A",
-      section: assignment.section ? assignment.section.name : "N/A",
-      status: assignment.status || "N/A",
-      progress: assignment.evaluationProgress || 0,
-      createdAt: assignment.createdAt ? assignment.createdAt.toISOString() : "N/A",
-      questionPaper: assignment.questionPaper || [],
-      keyAnswerScript: assignment.keyAnswerScript || [],
-      students: assignment.students.map(student => ({
+      id: uassignment._id.toString(),
+      name: uassignment.name || "Untitled Assignment",
+      subject: uassignment.subject ? uassignment.subject.name : "N/A",
+      class: uassignment.class ? uassignment.class.name : "N/A",
+      section: uassignment.section ? uassignment.section.name : "N/A",
+      status: uassignment.status || "N/A",
+      progress: uassignment.evaluationProgress || 0,
+      createdAt: uassignment.createdAt ? uassignment.createdAt.toISOString() : "N/A",
+      assignmentStructure:uassignment.assignmentStructure,
+      questionPaper: uassignment.questionPaper || [],
+      keyAnswerScript: uassignment.keyAnswerScript || [],
+      students: uassignment.students.map(student => ({
         id: student.studentId._id.toString(),
         name: student.studentId.name || "Unknown",
         email: student.studentId.email || "N/A",
@@ -273,8 +305,12 @@ router.post("/updateAssignmentStudents", validate, async (req, res) => {
     if (allStudentsUploadedOrAbsent) {
       // If all students have uploaded or are absent, set the status to "Evaluation Not Started"
       assignment.status = "Evaluation Not Started";
-      await assignment.save(); // Save the status update
+      
+    }else{
+      assignment.status = "Pending Upload";
+      
     }
+    await assignment.save(); // Save the status update
 
     // Respond with success
     res.send("Students updated successfully");
