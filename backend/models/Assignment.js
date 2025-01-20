@@ -9,7 +9,7 @@ const assignmentSchema = new mongoose.Schema({
 
   questionPaper: [{ type: String }], // URLs of uploaded question paper PDFs
   keyAnswerScript: [{ type: String }], // URLs of uploaded key answer scripts
-
+  MaxMarks:[{type:Number,required:true}],
   assignmentStructure: [
     {
       sectionName: String, // Section I, Section II, etc.
@@ -39,18 +39,25 @@ const assignmentSchema = new mongoose.Schema({
       marksScored: { type: Number }, // Total marks scored
       marksBreakdown: [
         {
-          section: String,
-          questionNo: String,
-          marksGiven: Number, // Marks assigned per question
-          x: Number,
-          y: Number,
-          comment: String,
+          section: String, // Section name (e.g., Section I)
+          questionNo: String, // Question number
+          labels: [
+            {
+              labelName: { type: String }, // Label name (e.g., "1 mark", "3 marks")
+              marksGiven: { type: Number }, // Marks assigned for this label
+              x: { type: Number }, // X-coordinate for the label
+              y: { type: Number }, // Y-coordinate for the label
+              comment: { type: String }, // Comment specific to this label
+            },
+          ],
+          totalMarksGiven: { type: Number }, // Total marks for this question
+          aiEvaluator: { type: Boolean, default: false }, // Whether AI evaluated the question
+          comment: { type: String }, // Overall comment for the question
         },
       ],
-      comments: { type: String }, // Evaluation comments
+      comments: { type: String }, // Overall evaluation comments for the student
     },
   ],
-
   status: {
     type: String,
     enum: ['Pending Upload', 'Evaluation Not Started', 'Evaluation In Progress', 'Completed'],

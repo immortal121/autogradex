@@ -25,15 +25,7 @@ export default function AssignmentList() {
     // Navigate to the assignment detail page
     window.location.href = `/teacher/assignments/${assignmentId}`;
   };
-  // const columns = [
-  //   {key: "name", label: "Assignment Name", sortable: true },
-  //   {key: "subject", label: "Subject", sortable: true },
-  //   {key: "className", label: "Class", sortable: true },
-  //   {key: "section", label: "Section", sortable: false },
-  //   {key: "totalStudents", label: "Total Students", sortable: false },
-  //   {key: "evaluationProgress", label: "Evaluation Progress", sortable: false },
-  //   ];
-    const columns = ["name","subject","class","section","progress"];
+  const columns = ["name","subject","class","section","progress"];
     
   return (
     <>

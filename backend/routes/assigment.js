@@ -196,18 +196,24 @@ router.get("/getAssignment", validate, async (req, res) => {
       return res.status(404).send({ error: "Assignment not found" });
     }
     
-    // Check if all students are either absent or have uploaded the answer scripts
-    const allStudentsUploadedOrAbsent = assignment.students.every(
-      (student) => student.isAbsent || student.uploaded
-    );
 
-    if (allStudentsUploadedOrAbsent) {
-      // If all students have uploaded or are absent, set the status to "Evaluation Not Started"
-      assignment.status = "Evaluation Not Started";
-      
-    }else{
-      assignment.status = "Pending Upload";
-      
+    
+    if (assignment.status === "Evaluation In Progress") {
+      console.log("Evaluation is already in progress. Skipping status update.");
+    } else {
+      console.log("here");
+      // Check if all students are either absent or have uploaded the answer scripts
+      const allStudentsUploadedOrAbsent = assignment.students.every(
+        (student) => student.isAbsent || student.uploaded
+      );
+    
+      if (allStudentsUploadedOrAbsent) {
+        // If all students have uploaded or are absent, set the status to "Evaluation Not Started"
+        assignment.status = "Evaluation Not Started";
+      } else {
+        // Otherwise, set the status to "Pending Upload"
+        assignment.status = "Pending Upload";
+      }
     }
     await assignment.save(); // Save the status update
 
@@ -297,19 +303,28 @@ router.post("/updateAssignmentStudents", validate, async (req, res) => {
       );
     }
 
-    // Check if all students are either absent or have uploaded the answer scripts
-    const allStudentsUploadedOrAbsent = assignment.students.every(
-      (student) => student.isAbsent || student.uploaded
-    );
-
-    if (allStudentsUploadedOrAbsent) {
-      // If all students have uploaded or are absent, set the status to "Evaluation Not Started"
-      assignment.status = "Evaluation Not Started";
+    if (assignment.status === "Evaluation In Progress" || assignment.status === "Completed") {
+      console.log("Evaluation is already in progress or completed. Skipping status update.");
+    } else {
+      // Check if all students are either absent or have uploaded their answer scripts
+      const allStudentsUploadedOrAbsent = assignment.students.every(
+        (student) => student.isAbsent || student.uploaded
+      );
       
-    }else{
-      assignment.status = "Pending Upload";
-      
+      // If all students have uploaded or are absent and the status is not already "Completed" or "Evaluation In Progress"
+      if (allStudentsUploadedOrAbsent) {
+        if (assignment.status !== "Completed" && assignment.status !== "Evaluation In Progress") {
+          // If the status is neither "Completed" nor "Evaluation In Progress", set the status to "Evaluation Not Started"
+          assignment.status = "Evaluation Not Started";
+          console.log("Status set to 'Evaluation Not Started'.");
+        }
+      } else {
+        // If not all students have uploaded their scripts, set the status to "Upload Pending"
+        assignment.status = "Upload Pending";
+        console.log("Status set to 'Upload Pending'.");
+      }
     }
+    
     await assignment.save(); // Save the status update
 
     // Respond with success
@@ -321,6 +336,76 @@ router.post("/updateAssignmentStudents", validate, async (req, res) => {
   }
 });
 
+
+router.post("/UpdateWithDigitalEvaluator", validate, async (req, res) => {
+  try {
+    const { id, students } = req.body;
+
+    // Validate the input
+    if (!id || !students || !Array.isArray(students)) {
+      return res.status(400).send({ error: "Invalid request payload" });
+    }
+
+    // Find the assignment by ID
+    const assignment = await Assignment.findById(id);
+
+    if (!assignment) {
+      return res.status(404).send({ error: "Assignment not found" });
+    }
+
+    // Update student records in the database
+    for (const student of students) {
+      const updatedAssignment = await Assignment.updateOne(
+        {
+          _id: id, // Match the assignment by ID
+          "students.studentId": student.studentId, // Match the student by their ID
+        },
+        {
+          $set: {
+            "students.$.isAbsent": student.isAbsent, // Update the isAbsent field
+            "students.$.answerScript": student.answerScript, // Update the answerScript field
+            "students.$.evaluationStatus": student.evaluationStatus, // Update evaluation status
+            "students.$.marksScored": student.marksScored, // Update total marks scored
+            "students.$.marksBreakdown": student.marksBreakdown, // Update marks breakdown
+            "students.$.comments": student.comments, // Update the student's overall comments
+          },
+        }
+      );
+    }
+
+    // Update the status of the assignment
+    if (assignment.status === "Evaluation In Progress" || assignment.status === "Completed") {
+      console.log("Evaluation is already in progress or completed. Skipping status update.");
+    } else {
+      // Check if all students are either absent or have uploaded their answer scripts
+      const allStudentsUploadedOrAbsent = assignment.students.every(
+        (student) => student.isAbsent || student.uploaded
+      );
+      
+      // If all students have uploaded or are absent and the status is not already "Completed" or "Evaluation In Progress"
+      if (allStudentsUploadedOrAbsent) {
+        if (assignment.status !== "Completed" && assignment.status !== "Evaluation In Progress") {
+          // If the status is neither "Completed" nor "Evaluation In Progress", set the status to "Evaluation Not Started"
+          assignment.status = "Evaluation Not Started";
+          console.log("Status set to 'Evaluation Not Started'.");
+        }
+      } else {
+        // If not all students have uploaded their scripts, set the status to "Upload Pending"
+        assignment.status = "Upload Pending";
+        console.log("Status set to 'Upload Pending'.");
+      }
+    }
+    
+    await assignment.save(); // Save the status update
+
+    // Respond with success
+    res.send("Students updated successfully");
+
+  } catch (err) {
+    console.error("Error updating assignment students:", err);
+    res.status(500).send({ error: "Failed to update assignment students" });
+  }
+});
 
 
 //  evaluation 
@@ -445,4 +530,27 @@ router.post("/EvaluateWithAI/", validate, async (req, res) => {
   }
 });
 
+
+router.post("/EvaluateWithDigital/", validate, async (req, res) => {
+  try {
+    const { assignmentId } = req.body;
+
+    console.log(assignmentId);
+    // Fetch the assignment by ID
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.status(404).send({ error: "Assignment not found." });
+    }
+
+    // Update the status of the assignment to "Evaluation in Process"
+    assignment.status = "Evaluation In Progress";
+    await assignment.save();
+
+
+    return res.status(200).send("done");
+  } catch (error) {
+    console.error("Error during evaluation:", error.message);
+    return res.status(500).send({ error: error.message });
+  }
+});
 export default router;

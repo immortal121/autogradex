@@ -5,6 +5,7 @@ import axios from "axios";
 import { usePathname } from "next/navigation";
 import { createContext, useState, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useRouter } from 'next/navigation';
 
 const MainContext = createContext<any>(null);
 
@@ -660,7 +661,6 @@ function Context({ children }: { children: React.ReactNode }) {
         
             if (response.data) {
                 setAssignments(response.data);
-                console.log(response.data);
                 return response.data;  // Set the assignments data to your state
             } else {
                 toast.error("No assignments found for this ID.");
@@ -722,9 +722,6 @@ function Context({ children }: { children: React.ReactNode }) {
         }
     };
     
-    // Edit Assignment
-    // Delete Assignment
-
 
     // get student results 
     
@@ -759,6 +756,69 @@ function Context({ children }: { children: React.ReactNode }) {
             throw error; // Rethrow error to handle it in calling code if needed
         }
     };
+    const EvaluateWithDigital = async (assignmentId) => {
+        try {
+            const config = {
+                method: "POST",
+                url: `${serverURL}/assignment/EvaluateWithDigital`, // Adjust endpoint if needed
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send token in the header
+                    "Content-Type": "application/json", // Ensure content type is JSON
+                },
+                data: {
+                    assignmentId: assignmentId, // Assignment ID to identify the record
+                },
+            };
+    
+            // Send a request to update the students in the assignment
+            const response = await axios(config);
+            console.log(response);
+            if (response) {
+                console.log("here ::)");
+                // const router = useRouter();
+                // router.push(`/digievaluator/${assignmentId}`);
+                window.location.href = `/digievaluator/${assignmentId}`;
+
+            } else {
+                toast.error("Evaluation Failed .");
+            }
+        } catch (error) {
+            console.error("Evaluation Failed .:", error);
+            toast.error("Evaluation Failed .");
+            throw error; // Rethrow error to handle it in calling code if needed
+        }
+    };
+
+    const UpdateScoresByDigitalEvaluator = async (assignmentId, updateData) => {
+        try {
+          const config = {
+            method: "POST",
+            url: `${serverURL}/assignment/UpdateScoresByDigitalEvaluator`, // API endpoint for updating scores
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              assignmentId,
+              updateData,
+            },
+          };
+      
+          // Send the request
+          const response = await axios(config);
+          if (response.data) {
+            toast.success("Scores updated successfully.");
+            return response.data; // Return updated assignment data
+          } else {
+            toast.error("Failed to update scores.");
+          }
+        } catch (error) {
+          console.error("Error updating scores:", error);
+          toast.error("Failed to update scores.");
+          throw error;
+        }
+      };
+      
     //pdf to image converter
     
     const convertPDFToImage = async (file: any) => {
@@ -860,7 +920,7 @@ function Context({ children }: { children: React.ReactNode }) {
                 //pdf to image
                 convertPDFToImage,
                 //evalutor
-                Evaluate,
+                Evaluate,EvaluateWithDigital,UpdateScoresByDigitalEvaluator
             }}
         >
             {children}

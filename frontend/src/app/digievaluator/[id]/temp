@@ -49,7 +49,6 @@ export default function Home() {
   const [selectedLabel, setSelectedLabel] = useState();
   const [selectedSection, setSelectedSection] = useState(null);
   const [hoveredMark, setHoveredMark] = useState();
-  const [globalState, setGlobalState] = useState({});
 
   const imageRef = useRef();
 
@@ -60,9 +59,6 @@ export default function Home() {
 
   const tools = ["Undo", "Redo", "Tick", "Wrong"];
 
-  // const [data,setData] = useState([{}]);
-
-  const [update,setUpdate] = useState(false);
 
   // Fetch assignment details and students on page load
   useEffect(() => {
@@ -71,28 +67,27 @@ export default function Home() {
       setStudent(assignmentData.students || []); // Store students data
     };
     fetchData();
-  }, [id,update]);
+  }, [id]);
 
 
   useEffect(() => {
-    console.log("global state :"+globalState);
     resetStudentData();
-    // loadStudentPageData(student.id, 0);
-    setUpdate(!update);
-  }, [url]);
+    loadStudentPageData(student.id, 0);
+
+  }, [student]);
 
 
 
   // Load data from localStorage for a specific student and page
-  // const loadStudentPageData = (studentId, page) => {
-  //   const savedData = localStorage.getItem(`student_${studentId}_page_${page}`);
+  const loadStudentPageData = (studentId, page) => {
+    const savedData = localStorage.getItem(`student_${studentId}_page_${page}`);
 
-  //   if (savedData) {
-  //     const parsedData = JSON.parse(savedData);
-  //     setMarks(parsedData.marks || []);
-  //     setScores(parsedData.scores || {});
-  //   }
-  // };
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      setMarks(parsedData.marks || []);
+      setScores(parsedData.scores || {});
+    }
+  };
 
   // Reset data when switching students
   const resetStudentData = () => {
@@ -100,6 +95,7 @@ export default function Home() {
     setScores({});
     setHistory([]);
     setHistoryIndex(-1);
+    setUrl(null);
   };
 
 
@@ -121,93 +117,41 @@ export default function Home() {
     });
 
     // Save current state to localStorage
-    saveToGlobalState(selectedStudent.id, url, marks, scores); // Assuming page 1 for example
+    saveToLocalStorage(selectedStudent.id, 0, marks, scores); // Assuming page 1 for example
   };
 
   // Save the current state to localStorage
-  
-  const saveToGlobalState = (studentId, page, marks, scores) => {
-    setGlobalState((prevState) => ({
-      ...prevState,
-      [studentId]: {
-        ...prevState[studentId],
-        [page]: {
-          marks: { ...marks },
-          scores: { ...scores },
-        },
-      },
-    }));
+  const saveToLocalStorage = (studentId, page, marks, scores) => {
+    const stateToSave = { marks, scores };
+    localStorage.setItem(`student_${studentId}_page_${page}`, JSON.stringify(stateToSave));
   };
-  
 
   // Handle image click for marking
-  // const handleImageClick = (e) => {
-  //   if (!selectedQuestion) {
-  //     alert("Please select a question first before marking.");
-  //     return;
-  //   }
-
-  //   if (!selectedLabel) {
-  //     alert("Please select a Mark / Label first before marking.");
-  //     return;
-  //   }
-
-  //   const rect = imageRef.current.getBoundingClientRect();
-  //   const x = ((e.clientX - rect.left) / rect.width) * 100;
-  //   const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-  //   const questionKey = `${selectedQuestion.sectionName}-${selectedQuestion.questionNo}`;
-  //   const newMarkValue = (parseFloat(scores[questionKey] || 0) + parseFloat(selectedLabel)).toFixed(2);
-
-  //   if (newMarkValue > selectedQuestion.marks) {
-  //     alert(`The total score (${newMarkValue}) exceeds the maximum score (${selectedQuestion.marks}) for this question.`);
-  //     return;
-  //   }
-
-  //   const newMarks = [
-  //     ...marks,
-  //     {
-  //       questionKey,
-  //       label: selectedLabel,
-  //       x: x.toFixed(2),
-  //       y: y.toFixed(2),
-  //     },
-  //   ];
-
-  //   setMarks(newMarks);
-  //   handleScoreChange({ sectionName: selectedQuestion.sectionName }, selectedQuestion, newMarkValue);
-  //   setSelectedLabel(null);
-  //   addHistoryState(newMarks, scores); // Save state for undo/redo
-  // };
-
-  // Save history state for undo/redo
-  
   const handleImageClick = (e) => {
     if (!selectedQuestion) {
       alert("Please select a question first before marking.");
       return;
     }
-  
+
     if (!selectedLabel) {
       alert("Please select a Mark / Label first before marking.");
       return;
     }
-  
+
     const rect = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-  
+
     const questionKey = `${selectedQuestion.sectionName}-${selectedQuestion.questionNo}`;
     const newMarkValue = (parseFloat(scores[questionKey] || 0) + parseFloat(selectedLabel)).toFixed(2);
-  
+
     if (newMarkValue > selectedQuestion.marks) {
       alert(`The total score (${newMarkValue}) exceeds the maximum score (${selectedQuestion.marks}) for this question.`);
       return;
     }
-  
-    const pageMarks = marks[url] || []; // Retrieve existing marks for the current page
-    const newMarksForPage = [
-      ...pageMarks,
+
+    const newMarks = [
+      ...marks,
       {
         questionKey,
         label: selectedLabel,
@@ -215,104 +159,83 @@ export default function Home() {
         y: y.toFixed(2),
       },
     ];
-  
-    const updatedMarks = {
-      ...marks,
-      [url]: newMarksForPage, // Update marks for the current page
-    };
-  
-    setMarks(updatedMarks);
+
+    setMarks(newMarks);
     handleScoreChange({ sectionName: selectedQuestion.sectionName }, selectedQuestion, newMarkValue);
     setSelectedLabel(null);
-    addHistoryState(updatedMarks, scores); // Save state for undo/redo
+    addHistoryState(newMarks, scores); // Save state for undo/redo
   };
 
+  // Save history state for undo/redo
   const addHistoryState = (newMarks, newScores) => {
-    // Truncate redo history if a new action is performed
+    // When new action is performed, truncate redo history if it's not at the end
     const updatedHistory = history.slice(0, historyIndex + 1);
-  
+
     // Add the new state to the history
-    updatedHistory.push({ marks: { ...newMarks }, scores: { ...newScores } });
-  
-    // Update history and reset the historyIndex to the latest state
+    updatedHistory.push({ marks: newMarks, scores: newScores });
+
+    // Set the new history and reset the historyIndex to the latest state
     setHistory(updatedHistory);
     setHistoryIndex(updatedHistory.length - 1);
   };
-  
+
   // Remove a mark
   const handleMarkRemove = (e, index, mark) => {
     e.stopPropagation();
-  
-    // Create a copy of the marks for the current page
-    const pageMarks = [...(marks[url] || [])];
-  
-    // Remove the specific mark by index
-    const newPageMarks = pageMarks.filter((_, i) => i !== index);
-  
-    // Update the score for the affected question
+    const newMarks = marks.filter((_, i) => i !== index);
+
     const updatedScore = parseFloat(scores[mark.questionKey] || 0) - parseFloat(mark.label);
-  
-    // Update marks globally
-    const newMarks = {
-      ...marks,
-      [url]: newPageMarks,
-    };
-  
+
     setMarks(newMarks);
     setScores((prevScores) => {
       const updatedScores = {
         ...prevScores,
         [mark.questionKey]: updatedScore > 0 ? updatedScore.toFixed(2) : "",
       };
-  
-      // Save state for undo/redo
-      addHistoryState(newMarks, updatedScores);
+      addHistoryState(newMarks, updatedScores); // Save state for undo/redo
       return updatedScores;
     });
-  
+
     // Save current state to localStorage after mark removal
-    saveToGlobalState(selectedStudent.id, page, newMarks, scores);
+    saveToLocalStorage(selectedStudent.id, 0, newMarks, scores);
   };
-  
-  // Undo functionality
   const undo = () => {
     if (historyIndex > 0) {
       // Move one step back in the history
       const prevState = history[historyIndex - 1];
-  
+
       // Update marks and scores based on the previous state
       setMarks(prevState.marks);
       setScores(prevState.scores);
-  
+
       // Update the history index
       setHistoryIndex(historyIndex - 1);
     } else {
       alert("No more undo history.");
     }
   };
-  
+
   // Redo functionality
   const redo = () => {
     if (historyIndex < history.length - 1) {
       // Move one step forward in the history
       const nextState = history[historyIndex + 1];
-  
+
       // Update marks and scores based on the next state
       setMarks(nextState.marks);
       setScores(nextState.scores);
-  
+
       // Update the history index
       setHistoryIndex(historyIndex + 1);
     } else {
       alert("No more redo history.");
     }
   };
-  
+
   // Update student assignments after marking update
   const updateStudentAssignments = () => {
     updateAssignmentStudents(id, selectedStudent, marks, scores); // Method to update the assignment with the current marks and scores
   };
-  console.log(marks[url]);
 
 
   return (
@@ -475,7 +398,7 @@ export default function Home() {
                   className="w-full"
                   style={{ display: "block" }}
                 />
-                {url && marks[url] ? (marks[url].map((mark, index) => (
+                {marks.map((mark, index) => (
                   <div
                     key={index}
                     title={`Label: ${mark.label}`}
@@ -525,7 +448,7 @@ export default function Home() {
                       </span>
                     )}
                   </div>
-                ))):""}
+                ))}
               </div> : <Typography className="p-2" variant="h5">Select Student and Paper</Typography>}
 
           </Box>

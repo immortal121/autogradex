@@ -17,10 +17,11 @@ import Image from "next/image";
 export default function AssignmentView() {
   const { id } = useParams(); // Assignment ID from the URL
   const [students, setStudents] = useState([]);
+  const [reget,setReget] = useState(false);
   const {
     assignments,
     getFilteredAssignment,
-    updateAssignmentStudents,Evaluate
+    updateAssignmentStudents,Evaluate,EvaluateWithDigital
   } = useContext(MainContext);
 
   // Fetch assignment details and students on page load
@@ -44,7 +45,7 @@ export default function AssignmentView() {
       }
     };
     fetchData();
-  }, [id,students]);
+  }, [reget]);
 
   // Function to handle updating the assignment table
   const handleStudentsUpdate = (updatedStudents) => {
@@ -60,16 +61,21 @@ export default function AssignmentView() {
         console.error("Error updating assignment:", error);
         toast.error("Failed to update assignment.");
       });
+      setReget(!reget);
   };
 
   const handleEvaluateWithAI = () => {
     
     toast.success("Evaluation with AI started!");
     Evaluate(id);
+    
+    setReget(!reget);
   };
 
   const handleEvaluateWithDigital = () => {
     toast.success("Evaluation with DigiEvaluator started!");
+    EvaluateWithDigital(id);
+    
   };
 
   // Function to render evaluation results or marks list
@@ -196,7 +202,8 @@ export default function AssignmentView() {
             variant="contained"
             color="secondary"
             onClick={handleEvaluateWithDigital}
-            disabled={assignments?.status !== "Evaluation Not Started"}
+            disabled={!(assignments?.status === "Evaluation Not Started" || assignments?.status === "Evaluation In Progress")}
+
           >
             Evaluate with DigiEvaluator
           </Button>
