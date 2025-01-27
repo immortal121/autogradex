@@ -29,12 +29,13 @@ import {
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 
-const AssignmentTable= ({ data, visibleColumns, editable, deletable }) => {
+const AssignmentTable= ({ data, visibleColumns, editable, deletable,route="teacher" }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  console.log(route);
 
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
 
@@ -94,8 +95,12 @@ const AssignmentTable= ({ data, visibleColumns, editable, deletable }) => {
   const handleExport = () => console.log('Export data as Excel');
   const handlePrint = () => window.print();
 
-  const handleView = (row) =>{
-    window.location.href="/teacher/assignment/view/"+row.id;
+  const handleView = (row,route) =>{
+    if(route == "teacher"){
+      window.location.href="/teacher/assignment/view/"+row.id;
+    }else{
+      window.location.href="/admin/assignment/view/"+row.id;
+    }
   }
   const handleDelete = (row) =>{};
   const handleEdit = (row) =>{
@@ -164,7 +169,7 @@ const AssignmentTable= ({ data, visibleColumns, editable, deletable }) => {
                       ))}
                       {editable && (
                         <TableCell>
-                        <IconButton onClick={() => handleView(row)}>
+                        <IconButton onClick={() => handleView(row,route)}>
                           <VisibilityIcon />
                         </IconButton>
                           <IconButton onClick={() => handleEdit(row)}>

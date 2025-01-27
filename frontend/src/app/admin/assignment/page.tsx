@@ -23,7 +23,7 @@ export default function AssignmentList() {
   }, []);
   const handleViewAssignment = (assignmentId) => {
     // Navigate to the assignment detail page
-    window.location.href = `/teacher/assignments/${assignmentId}`;
+    window.location.href = `/admin/assignments/${assignmentId}`;
   };
   const columns = ["name","subject","class","section","maxMarks","progress"];
     
@@ -36,14 +36,14 @@ export default function AssignmentList() {
             Assignments
           </Typography>
           <Breadcrumbs aria-label="breadcrumb">
-            <Link underline="hover" color="inherit" href="/teacher">
+            <Link underline="hover" color="inherit" href="/admin">
               Teacher
             </Link>
-            <Link underline="hover" color="inherit" href="/teacher/assignments">Assignments</Link>
+            <Link underline="hover" color="inherit" href="/admin/assignments">Assignments</Link>
           </Breadcrumbs>
           <div className="flex justify-start gap-4 flex-wrap p-2">
             <div>
-              <Link href="/teacher/assignment/create" className="btn btn-secondary" >+ Create Assignment</Link>
+              <Link href="/admin/assignment/create" className="btn btn-secondary" >+ Create Assignment</Link>
             </div>
           </div>
         </Box>
@@ -53,6 +53,7 @@ export default function AssignmentList() {
           editable={true}
           deletable={true}
           visibleColumns={columns}
+          route="admin"
         />
       </div>
     </>

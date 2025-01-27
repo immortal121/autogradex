@@ -453,36 +453,36 @@ function Context({ children }: { children: React.ReactNode }) {
     };
 
     // Create Student
-    
+
     const createTeacher = async (name, email, password, teaching) => {
         try {
-          const config = {
-            method: "POST",
-            url: `${serverURL}/teacher/createTeacher`, // Assuming your backend endpoint is for teachers
-            headers: {
-              "Authorization": `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json",
-            },
-            data: {
-              name,
-              email,
-              password,
-              teaching, // Assuming 'teaching' is an array of objects with classId, sectionId, and subjectId
-            },
-          };
-      
-          const response = await axios(config);
-      
-          toast.success("Teacher created successfully!");
+            const config = {
+                method: "POST",
+                url: `${serverURL}/teacher/createTeacher`, // Assuming your backend endpoint is for teachers
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    name,
+                    email,
+                    password,
+                    teaching, // Assuming 'teaching' is an array of objects with classId, sectionId, and subjectId
+                },
+            };
+
+            const response = await axios(config);
+
+            toast.success("Teacher created successfully!");
         } catch (error) {
-          console.error("Error creating teacher:", error);
-          if (error.response && error.response.data) {
-            toast.error(error.response.data);
-          } else {
-            toast.error("Error creating teacher.");
-          }
+            console.error("Error creating teacher:", error);
+            if (error.response && error.response.data) {
+                toast.error(error.response.data);
+            } else {
+                toast.error("Error creating teacher.");
+            }
         }
-      };
+    };
     // Edit Student
     // Delete Teacher
     const deleteTeacher = async (userId) => {
@@ -534,37 +534,37 @@ function Context({ children }: { children: React.ReactNode }) {
     // Create Student
     const createStudent = async (name, email, password, classId, sectionId) => {
         try {
-          const config = {
-            method: "POST",
-            url: `${serverURL}/student/createStudent`, // Assuming your API endpoint is /students
-            headers: {
-              "Authorization": `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json",
-            },
-            data: {
-              name,
-              email,
-              password,
-              classId,
-              sectionId,
-            },
-          };
-      
-          const response = await axios(config);
-      
-          toast.success("Student created successfully!");
-           
-      
+            const config = {
+                method: "POST",
+                url: `${serverURL}/student/createStudent`, // Assuming your API endpoint is /students
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    name,
+                    email,
+                    password,
+                    classId,
+                    sectionId,
+                },
+            };
+
+            const response = await axios(config);
+
+            toast.success("Student created successfully!");
+
+
         } catch (error) {
-          console.error("Error creating student:", error);
-          if (error.response.data) {
-            toast.error(error.response.data); 
-          } else {
-            toast.error("Error creating student.");
-          }
+            console.error("Error creating student:", error);
+            if (error.response.data) {
+                toast.error(error.response.data);
+            } else {
+                toast.error("Error creating student.");
+            }
         }
-      };
-      
+    };
+
 
     // Edit Student
     // Delete Student
@@ -592,7 +592,7 @@ function Context({ children }: { children: React.ReactNode }) {
     };
 
     // Assignment
-    const [assignments,setAssignments] = useState();
+    const [assignments, setAssignments] = useState();
 
 
     // Get Assignment
@@ -600,7 +600,7 @@ function Context({ children }: { children: React.ReactNode }) {
         try {
             // Convert filters object to query string (e.g., ?className=10A&subject=Math)
             // const queryString = new URLSearchParams(filters).toString();
-    
+
             const config = {
                 method: "GET",
                 url: `${serverURL}/assignment`, // Modify URL path as needed
@@ -608,14 +608,14 @@ function Context({ children }: { children: React.ReactNode }) {
                     "Authorization": `Bearer ${localStorage.getItem("token")}`,
                 },
             };
-    
+
             // Fetch assignments based on filters
             const response = await axios(config);
             console.log(response.data);
-    
+
             // Assuming response.data contains the list of assignments
             setAssignments(response.data);  // Set the filtered assignments to state
-    
+
         } catch (error) {
             console.error("Error fetching assignments:", error);
             toast.error("Failed to fetch assignments.");
@@ -630,15 +630,15 @@ function Context({ children }: { children: React.ReactNode }) {
                     "Authorization": `Bearer ${localStorage.getItem("token")}`,
                 },
             };
-    
+
             // Fetch assignments based on filters
             const response = await axios(config);
             // Assuming response.data contains the list of assignments
             setAssignments(response.data);  // Set the filtered assignments to state
-    
+
         } catch (error) {
             // setAssignments();  // Set the filtered assignments to state
-    
+
             console.error("Error fetching assignments:", error);
             toast.error("Failed to fetch assignments.");
         }
@@ -655,10 +655,10 @@ function Context({ children }: { children: React.ReactNode }) {
                     id: id,
                 }
             };
-        
+
             // Fetch assignments based on the id filter
             const response = await axios(config);
-        
+
             if (response.data) {
                 setAssignments(response.data);
                 return response.data;  // Set the assignments data to your state
@@ -673,25 +673,25 @@ function Context({ children }: { children: React.ReactNode }) {
     // Create Assignment
     const createAssignment = async (assignmentData) => {
         try {
-          const config = {
-            method: "POST",
-            url: `${serverURL}/assignment/create`, // Replace with your actual endpoint
-            headers: {
-              "Authorization": `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json",
-            },
-            data: assignmentData, // Payload containing assignment details
-          };
-      
-          await axios(config);
-          toast.success("Assignment created successfully!");
+            const config = {
+                method: "POST",
+                url: `${serverURL}/assignment/create`, // Replace with your actual endpoint
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                data: assignmentData, // Payload containing assignment details
+            };
+
+            await axios(config);
+            toast.success("Assignment created successfully!");
         } catch (error) {
-          console.error("Error creating assignment:", error);
-          toast.error("Failed to create assignment");
+            console.error("Error creating assignment:", error);
+            toast.error("Failed to create assignment");
         }
-      };
-      
-      const updateAssignmentStudents = async (assignmentId, updatedStudents) => {
+    };
+
+    const updateAssignmentStudents = async (assignmentId, updatedStudents) => {
         try {
             const config = {
                 method: "POST",
@@ -706,10 +706,10 @@ function Context({ children }: { children: React.ReactNode }) {
                 },
             };
             console.log(updatedStudents)
-    
+
             // Send a request to update the students in the assignment
             const response = await axios(config);
-    
+
             if (response.data) {
                 console.log("Assignment students updated successfully!");
                 return response.data; // Optionally return updated data if needed
@@ -721,10 +721,10 @@ function Context({ children }: { children: React.ReactNode }) {
             throw error; // Rethrow error to handle it in calling code if needed
         }
     };
-    
+
 
     // get student results 
-    
+
 
     // evaluator
     const Evaluate = async (assignmentId) => {
@@ -740,10 +740,10 @@ function Context({ children }: { children: React.ReactNode }) {
                     assignmentId: assignmentId, // Assignment ID to identify the record
                 },
             };
-    
+
             // Send a request to update the students in the assignment
             const response = await axios(config);
-    
+
             if (response.data) {
                 toast.success("Evaluated ");
                 return response.data; // Optionally return updated data if needed
@@ -769,7 +769,7 @@ function Context({ children }: { children: React.ReactNode }) {
                     assignmentId: assignmentId, // Assignment ID to identify the record
                 },
             };
-    
+
             // Send a request to update the students in the assignment
             const response = await axios(config);
             console.log(response);
@@ -785,67 +785,77 @@ function Context({ children }: { children: React.ReactNode }) {
             throw error; // Rethrow error to handle it in calling code if needed
         }
     };
+    const EvaluateWithDigitalStudent = async (assignmentId, studentId) => {
+        try {
+
+            window.location.href = `/digievaluator/${assignmentId}/${studentId}`;
+
+
+        } catch (error) {
+
+        }
+    };
 
     const getAssignmentStudentById = async (assignmentId, studentId) => {
         try {
-          const config = {
-            method: "POST",
-            url: `${serverURL}/assignment/getAssignmentStudentById`, // API endpoint for getting student data
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json",
-            },
-            data: {
-                assignmentId: assignmentId, // Assignment ID to identify the record
-                studentId:studentId,
-            },
-          };
-      
-          const response = await axios(config);
-      
-          if (response.data) {
-            return response.data; // Return student data if successful
-          } else {
-            console.error("Failed to fetch student data.");
+            const config = {
+                method: "POST",
+                url: `${serverURL}/assignment/getAssignmentStudentById`, // API endpoint for getting student data
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    assignmentId: assignmentId, // Assignment ID to identify the record
+                    studentId: studentId,
+                },
+            };
+
+            const response = await axios(config);
+
+            if (response.data) {
+                return response.data; // Return student data if successful
+            } else {
+                console.error("Failed to fetch student data.");
+                return null; // Indicate failure
+            }
+        } catch (error) {
+            console.error("Error fetching student data:", error);
             return null; // Indicate failure
-          }
-        } catch (error) {
-          console.error("Error fetching student data:", error);
-          return null; // Indicate failure
         }
-      };
-      
-      const UpdateScoresByDigitalEvaluator = async (id, students) => {
+    };
+
+    const UpdateScoresByDigitalEvaluator = async (id, students) => {
         try {
-          const config = {
-            method: "POST",
-            url: `${serverURL}/assignment/UpdateWithDigitalEvaluator`, // API endpoint for updating scores
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json",
-            },
-            data: {
-              id,
-              students,
-            },
-          };
-      
-          // Send the request
-          const response = await axios(config);
-          if (response.data) {
-            console.log("Scores updated successfully."); // Use console.log for debugging
-          } else {
-            console.error("Failed to update scores.");
-          }
+            const config = {
+                method: "POST",
+                url: `${serverURL}/assignment/UpdateWithDigitalEvaluator`, // API endpoint for updating scores
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    id,
+                    students,
+                },
+            };
+
+            // Send the request
+            const response = await axios(config);
+            if (response.data) {
+                console.log("Scores updated successfully."); // Use console.log for debugging
+            } else {
+                console.error("Failed to update scores.");
+            }
         } catch (error) {
-          console.error("Error updating scores:", error);
-          throw error;
+            console.error("Error updating scores:", error);
+            throw error;
         }
-      };
-      
-      
+    };
+
+
     //pdf to image converter
-    
+
     const convertPDFToImage = async (file: any) => {
         const formData = new FormData();
         formData.append("file", file);
@@ -928,7 +938,7 @@ function Context({ children }: { children: React.ReactNode }) {
 
                 classes,
                 setClasses,
-                getClasses,getFilteredClasses,
+                getClasses, getFilteredClasses,
                 classSelected,
                 setClassSelected,
                 className,
@@ -936,16 +946,16 @@ function Context({ children }: { children: React.ReactNode }) {
                 editClassName, setEditClassName, editClassDescription, setEditClassDescription,
                 createClass, deleteClass, editClass,
                 // Teacher
-                teachers, setTeachers, getTeachers, createTeacher,deleteTeacher,
+                teachers, setTeachers, getTeachers, createTeacher, deleteTeacher,
                 // Student
-                students, setStudents, getStudents, createStudent,deleteStudent,
+                students, setStudents, getStudents, createStudent, deleteStudent,
                 // Assignment
-                assignments,setAssignments,createAssignment,getFilteredAssignments,getFilteredAssignment,getAssignmnets,updateAssignmentStudents,
+                assignments, setAssignments, createAssignment, getFilteredAssignments, getFilteredAssignment, getAssignmnets, updateAssignmentStudents,
 
                 //pdf to image
                 convertPDFToImage,
                 //evalutor
-                Evaluate,EvaluateWithDigital,UpdateScoresByDigitalEvaluator,getAssignmentStudentById,
+                Evaluate, EvaluateWithDigital, UpdateScoresByDigitalEvaluator, getAssignmentStudentById,EvaluateWithDigitalStudent
             }}
         >
             {children}

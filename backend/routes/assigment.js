@@ -157,6 +157,100 @@ router.get("/filtered", validate, async (req, res) => {
     res.status(500).send({ error: "Error fetching assignments" });
   }
 });
+
+// router.get("/getAssignment", validate, async (req, res) => {
+//   try {
+//     // Fetch the assignment based on the given ID
+//     const assignment = await Assignment.findById(req.query.id)
+//       .populate('subject')  // Populate the related subject
+//       .populate('class')    // Populate the related class
+//       .populate('section')  // Populate the related section
+//       .populate({
+//         path: 'students.studentId',  // Populate the 'studentId' field in students array
+//         select: 'name email rollNo'  // Specify the fields you want to populate from the User model
+//       })
+//       .exec();
+
+//     // Check if the assignment exists
+//     if (!assignment) {
+//       return res.status(404).send({ error: "Assignment not found" });
+//     }
+    
+
+    
+//     if (assignment.status === "Evaluation In Progress") {
+//       console.log("Evaluation is already in progress. Skipping status update.");
+//     } else {
+//       console.log("here");
+//       // Check if all students are either absent or have uploaded the answer scripts
+//       const allStudentsUploadedOrAbsent = assignment.students.every(
+//         (student) => student.isAbsent || student.uploaded
+//       );
+    
+//       if (allStudentsUploadedOrAbsent) {
+//         // If all students have uploaded or are absent, set the status to "Evaluation Not Started"
+//         assignment.status = "Evaluation Not Started";
+//       } else {
+//         // Otherwise, set the status to "Pending Upload"
+//         assignment.status = "Pending Upload";
+//       }
+//     }
+//     await assignment.save(); // Save the status update
+
+
+//     const uassignment = await Assignment.findById(req.query.id)
+//       .populate('subject')  // Populate the related subject
+//       .populate('class')    // Populate the related class
+//       .populate('section')  // Populate the related section
+//       .populate({
+//         path: 'students.studentId',  // Populate the 'studentId' field in students array
+//         select: 'name email rollNo'  // Specify the fields you want to populate from the User model
+//       })
+//       .exec();
+
+//     // Check if the assignment exists
+//     if (!uassignment) {
+//       return res.status(404).send({ error: "Assignment not found" });
+//     }
+    
+//     // Normalize the assignment data to send in the response
+//     const normalizedData = {
+//       id: uassignment._id.toString(),
+//       name: uassignment.name || "Untitled Assignment",
+//       subject: uassignment.subject ? uassignment.subject.name : "N/A",
+//       class: uassignment.class ? uassignment.class.name : "N/A",
+//       section: uassignment.section ? uassignment.section.name : "N/A",
+//       status: uassignment.status || "N/A",
+//       MaxMarks:uassignment.MaxMarks,
+//       progress: uassignment.evaluationProgress || 0,
+//       createdAt: uassignment.createdAt ? uassignment.createdAt.toISOString() : "N/A",
+//       assignmentStructure:uassignment.assignmentStructure,
+//       questionPaper: uassignment.questionPaper || [],
+//       keyAnswerScript: uassignment.keyAnswerScript || [],
+//       students: uassignment.students.map(student => ({
+//         id: student.studentId._id.toString(),
+//         name: student.studentId.name || "Unknown",
+//         email: student.studentId.email || "N/A",
+//         isAbsent: student.isAbsent || false,
+//         uploaded: student.uploaded || false,
+//         answerScript: student.answerScript || [],
+//         evaluationStatus: student.evaluationStatus || "Pending",
+//         evaluatedBy: student.evaluatedBy || null,
+//         marksScored: student.marksScored || null,
+//         marksBreakdown: student.marksBreakdown || [],
+//         comments: student.comments || "",
+//       })),
+//     };
+
+//     // Send the response with the normalized data
+//     return res.status(200).send(normalizedData);
+
+//   } catch (err) {
+//     console.error("Error fetching assignment:", err);
+//     res.status(500).send({ error: "Error fetching assignment details" });
+//   }
+// });
+
 router.get("/getAssignment", validate, async (req, res) => {
   try {
     // Fetch the assignment based on the given ID
@@ -166,7 +260,7 @@ router.get("/getAssignment", validate, async (req, res) => {
       .populate('section')  // Populate the related section
       .populate({
         path: 'students.studentId',  // Populate the 'studentId' field in students array
-        select: 'name email rollNo'  // Specify the fields you want to populate from the User model
+        select: 'name email rollNo'  // Specify the fields you want to populate
       })
       .exec();
 
@@ -174,59 +268,68 @@ router.get("/getAssignment", validate, async (req, res) => {
     if (!assignment) {
       return res.status(404).send({ error: "Assignment not found" });
     }
-    
 
-    
-    if (assignment.status === "Evaluation In Progress") {
-      console.log("Evaluation is already in progress. Skipping status update.");
+    // Calculate progress and update status based on students' evaluation
+    const totalStudents = assignment.students.length;
+    const evaluatedStudents = assignment.students.filter(
+      (student) => student.evaluationStatus === "Evaluated"
+    ).length;
+
+    const pendingStudents = totalStudents - evaluatedStudents;
+
+    // Calculate progress percentage
+    const progress = totalStudents > 0 
+      ? Math.round((evaluatedStudents / totalStudents) * 100) 
+      : 0;
+
+    // Determine assignment status based on progress
+    if (progress === 100) {
+      assignment.status = "Completed";
+    } else if (evaluatedStudents > 0) {
+      assignment.status = "Evaluation In Progress";
+    } else if (assignment.students.every(student => student.isAbsent || student.uploaded)) {
+      assignment.status = "Evaluation Not Started";
     } else {
-      console.log("here");
-      // Check if all students are either absent or have uploaded the answer scripts
-      const allStudentsUploadedOrAbsent = assignment.students.every(
-        (student) => student.isAbsent || student.uploaded
-      );
-    
-      if (allStudentsUploadedOrAbsent) {
-        // If all students have uploaded or are absent, set the status to "Evaluation Not Started"
-        assignment.status = "Evaluation Not Started";
-      } else {
-        // Otherwise, set the status to "Pending Upload"
-        assignment.status = "Pending Upload";
-      }
+      assignment.status = "Pending Upload";
     }
-    await assignment.save(); // Save the status update
 
+    // Update progress and save the assignment
+    assignment.evaluationProgress = progress;
+    await assignment.save();
 
-    const uassignment = await Assignment.findById(req.query.id)
-      .populate('subject')  // Populate the related subject
-      .populate('class')    // Populate the related class
-      .populate('section')  // Populate the related section
+    // Re-fetch the updated assignment
+    const updatedAssignment = await Assignment.findById(req.query.id)
+      .populate('subject')
+      .populate('class')
+      .populate('section')
       .populate({
-        path: 'students.studentId',  // Populate the 'studentId' field in students array
-        select: 'name email rollNo'  // Specify the fields you want to populate from the User model
+        path: 'students.studentId',
+        select: 'name email rollNo'
       })
       .exec();
 
-    // Check if the assignment exists
-    if (!uassignment) {
-      return res.status(404).send({ error: "Assignment not found" });
+    // Check if the updated assignment exists
+    if (!updatedAssignment) {
+      return res.status(404).send({ error: "Assignment not found after update" });
     }
-    
+
     // Normalize the assignment data to send in the response
     const normalizedData = {
-      id: uassignment._id.toString(),
-      name: uassignment.name || "Untitled Assignment",
-      subject: uassignment.subject ? uassignment.subject.name : "N/A",
-      class: uassignment.class ? uassignment.class.name : "N/A",
-      section: uassignment.section ? uassignment.section.name : "N/A",
-      status: uassignment.status || "N/A",
-      MaxMarks:uassignment.MaxMarks,
-      progress: uassignment.evaluationProgress || 0,
-      createdAt: uassignment.createdAt ? uassignment.createdAt.toISOString() : "N/A",
-      assignmentStructure:uassignment.assignmentStructure,
-      questionPaper: uassignment.questionPaper || [],
-      keyAnswerScript: uassignment.keyAnswerScript || [],
-      students: uassignment.students.map(student => ({
+      id: updatedAssignment._id.toString(),
+      name: updatedAssignment.name || "Untitled Assignment",
+      subject: updatedAssignment.subject ? updatedAssignment.subject.name : "N/A",
+      class: updatedAssignment.class ? updatedAssignment.class.name : "N/A",
+      section: updatedAssignment.section ? updatedAssignment.section.name : "N/A",
+      status: updatedAssignment.status || "N/A",
+      maxMarks: updatedAssignment.MaxMarks,
+      progress: updatedAssignment.evaluationProgress || 0,
+      createdAt: updatedAssignment.createdAt
+        ? updatedAssignment.createdAt.toISOString()
+        : "N/A",
+      assignmentStructure: updatedAssignment.assignmentStructure,
+      questionPaper: updatedAssignment.questionPaper || [],
+      keyAnswerScript: updatedAssignment.keyAnswerScript || [],
+      students: updatedAssignment.students.map(student => ({
         id: student.studentId._id.toString(),
         name: student.studentId.name || "Unknown",
         email: student.studentId.email || "N/A",
@@ -237,7 +340,7 @@ router.get("/getAssignment", validate, async (req, res) => {
         evaluatedBy: student.evaluatedBy || null,
         marksScored: student.marksScored || null,
         marksBreakdown: student.marksBreakdown || [],
-        comments: student.comments || "",
+        comment: student.comment || "",
       })),
     };
 
@@ -249,6 +352,7 @@ router.get("/getAssignment", validate, async (req, res) => {
     res.status(500).send({ error: "Error fetching assignment details" });
   }
 });
+
 router.post('/getAssignmentStudentById', validate, async (req, res) => {
   try {
     const { assignmentId, studentId } = req.body;
@@ -607,7 +711,6 @@ router.post("/EvaluateWithDigital/", validate, async (req, res) => {
   try {
     const { assignmentId } = req.body;
 
-    console.log(assignmentId);
     // Fetch the assignment by ID
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) {

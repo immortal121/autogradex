@@ -35,8 +35,9 @@ export default function Home() {
 
   const { id } = useParams();
 
-
+  //
   const router = useRouter();
+
   const [lmenu, setLmenu] = useState(false); // Controls left bar visibility on small screens
   const [rmenu, setRmenu] = useState(false); // Placeholder for right bar toggle
 
@@ -46,7 +47,7 @@ export default function Home() {
 
   // student
 
-  const [studentId, setStudentId] = useState('');
+  const [studentId, setStudentId] = useState(id[1]?id[1]:'');
   const [student, setStudent] = useState({});
 
 
@@ -73,16 +74,19 @@ export default function Home() {
   const [historyIndex, setHistoryIndex] = useState(1);
 
   // update
+  const handleSave = () => {
+    UpdateScoresByDigitalEvaluator(id[0], student);
+  }
 
   // methods
 
   useEffect(() => {
     const fetchData = async () => {
-      const assignmentData = await getFilteredAssignment(id);
+      const assignmentData = await getFilteredAssignment(id[0]);
       setAssignment(assignmentData);
     };
     fetchData();
-  }, [id]);
+  }, [id[0]]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,6 +160,7 @@ export default function Home() {
 
     // Update the student state immutably
     setStudent({ ...student, marksBreakdown: updatedMarksBreakdown });
+    UpdateScoresByDigitalEvaluator(id[0], student);
   };
 
   // Image 
@@ -389,6 +394,21 @@ export default function Home() {
             ))}
           </div>
         </div>
+        <div>
+          <Typography variant="subtitle1" className="mb-4">
+            Saving Options
+          </Typography>
+          <div className="flex flex-wrap gap-1">
+              <Button
+                variant={"contained"}
+                color="success"
+                onClick={() => handleSave()}
+                
+              >
+                Save
+              </Button>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -444,26 +464,9 @@ export default function Home() {
 
               </FormControl>
               <FormControl variant="standard" sx={{ m: 2, minWidth: 200 }}>
-                <InputLabel id="student-select-label">Student</InputLabel>
-                <Select
-                  labelId="student-select-label"
-                  onChange={(e) => {
-                    student ? UpdateScoresByDigitalEvaluator(id, student) : "";
-                    setStudentId(e.target.value);
-                    setPage(null);
-                    // resetStudentData();
-                  }}
-                  label="Student"
-                >
-                  {assignment?.students?.map((student) => (
-                    <MenuItem key={student.id} value={student.id}>
-                      {student.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-
+                <Typography variant="p" clasName="bg-white shadow m-2">Edit - <strong>{student?.name}</strong></Typography>
               </FormControl>
-              <Button onClick={()=>router.back()} className="h-full">
+              <Button onClick={() => router.back()} className="h-full">
                 <Tooltip title="Back to Dashboard">
                   <IconButton variant="outlined">
                     <ArrowBack color="error" />

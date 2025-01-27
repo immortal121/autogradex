@@ -169,7 +169,7 @@ export default function CreateAssignment() {
     createAssignment(assignmentData);
 
     toast.success('Assignment created successfully!');
-    window.location.href = "/teacher/assignment";
+    window.location.href = "/admin/assignment";
   };
 
 
@@ -245,13 +245,13 @@ export default function CreateAssignment() {
           Create Assignment
         </Typography>
         <Breadcrumbs aria-label="breadcrumb">
-          <Link color="inherit" href="/teacher">
+          <Link color="inherit" href="/admin">
             Home
           </Link>
-          <Link color="inherit" href="/teacher/assignment">
+          <Link color="inherit" href="/admin/assignment">
             Assignment
           </Link>
-          <Link color="inherit" href="/teacher/assignment/create">
+          <Link color="inherit" href="/admin/assignment/create">
             Create
           </Link>
         </Breadcrumbs>
