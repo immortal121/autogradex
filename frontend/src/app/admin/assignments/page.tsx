@@ -19,13 +19,12 @@ export default function AssignmentList() {
 
   useEffect(() => {
     getFilteredAssignments();// Fetch the list of assignments
-  
   }, []);
   const handleViewAssignment = (assignmentId) => {
     // Navigate to the assignment detail page
     window.location.href = `/teacher/assignments/${assignmentId}`;
   };
-  const columns = ["name","subject","class","section","maxMarks","progress"];
+    const columns = ["name","subject","class","section","progress"];
     
   return (
     <>
@@ -41,17 +40,17 @@ export default function AssignmentList() {
             </Link>
             <Link underline="hover" color="inherit" href="/teacher/assignments">Assignments</Link>
           </Breadcrumbs>
-          <div className="flex justify-start gap-4 flex-wrap p-2">
+          {/* <div className="flex justify-start gap-4 flex-wrap p-2">
             <div>
               <Link href="/teacher/assignment/create" className="btn btn-secondary" >+ Create Assignment</Link>
             </div>
-          </div>
+          </div> */}
         </Box>
         
         <AssignmentTable
           data={assignments}
-          editable={true}
-          deletable={true}
+          editable={false}
+          deletable={false}
           visibleColumns={columns}
         />
       </div>

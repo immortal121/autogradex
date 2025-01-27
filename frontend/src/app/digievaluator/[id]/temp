@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -38,17 +38,18 @@ export default function Home() {
   const [lmenu, setLmenu] = useState(false); // Controls left bar visibility on small screens
   const [rmenu, setRmenu] = useState(false); // Placeholder for right bar toggle
   const [student, setStudent] = useState([]);
-  const [url, setUrl] = useState('');
+  const [page, setPage] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [marks, setMarks] = useState([]); // Store marks for the student's page
   const [scores, setScores] = useState({}); // Store scores for the student's assignment
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(1);
-  const { assignments, getFilteredAssignment, updateAssignmentStudents } = useContext(MainContext);
+  const { assignments, getFilteredAssignment, updateAssignmentStudents, UpdateScoresByDigitalEvaluator } = useContext(MainContext);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [selectedLabel, setSelectedLabel] = useState();
   const [selectedSection, setSelectedSection] = useState(null);
   const [hoveredMark, setHoveredMark] = useState();
+  const [globalState, setGlobalState] = useState({});
 
   const imageRef = useRef();
 
@@ -59,6 +60,13 @@ export default function Home() {
 
   const tools = ["Undo", "Redo", "Tick", "Wrong"];
 
+  // const [data,setData] = useState([{}]);
+
+  const [update, setUpdate] = useState(false);
+  const [comments, setComments] = useState({});
+  const [overallComment, setOverallComment] = useState("");
+
+
 
   // Fetch assignment details and students on page load
   useEffect(() => {
@@ -67,41 +75,112 @@ export default function Home() {
       setStudent(assignmentData.students || []); // Store students data
     };
     fetchData();
-  }, [id]);
-
+  }, [id, update]);
 
   useEffect(() => {
-    resetStudentData();
-    loadStudentPageData(student.id, 0);
+    const loadStudentData = async () => {
+      if (!student) return;
 
+      // Fetch the student's existing data from the backend
+      const studentData = student;
+
+      if (studentData) {
+        console.log(studentData);
+        const existingMarks = studentData.marksBreakdown.reduce((acc, page) => {
+          console.log(acc);
+          console.log(page);
+          acc[page.page] = page.labels.map(label => ({
+            sectionName: label.sectionName,
+            questionNo: label.questionNo,
+            label: label.marksGiven,
+            x: label.x,
+            y: label.y,
+            comment: label.comment,
+          }));
+          return acc;
+        }, {});
+
+        const existingComments = studentData.marksBreakdown.reduce((acc, page) => {
+          page.labels.forEach(label => {
+            
+            acc[`${label.sectionName}-${label.questionNo}`] = label.comment || '';
+          });
+          return acc;
+        }, {});
+
+        setMarks(existingMarks);
+
+        setScores(
+          studentData.marksBreakdown.reduce((acc, page) => {
+            page.labels.forEach(label => {
+              const questionKey = `${label.sectionName}-${label.questionNo}`;
+
+              acc[questionKey] = label.marksGiven || 0; // Default to 0 if undefined
+            });
+            return acc;
+          }, {})
+        );
+
+        setComments(existingComments);
+        setOverallComment(studentData.comments || '');
+        setGlobalState(prevState => ({
+          ...prevState,
+          [student.id]: {
+            marks: existingMarks,
+            comments: existingComments,
+            overallComment: studentData.comments || '',
+          },
+        }));
+      }
+    };
+
+    loadStudentData();
   }, [student]);
 
 
+  // console.log(scores);
+  const handleOverallCommentChange = (comment) => {
+    setOverallComment(comment);
 
-  // Load data from localStorage for a specific student and page
-  const loadStudentPageData = (studentId, page) => {
-    const savedData = localStorage.getItem(`student_${studentId}_page_${page}`);
-
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setMarks(parsedData.marks || []);
-      setScores(parsedData.scores || {});
-    }
+    // Update global state with the overall comment
+    setGlobalState((prevState) => ({
+      ...prevState,
+      [selectedStudent.id]: {
+        ...prevState[selectedStudent.id],
+        overallComment: comment,
+      },
+    }));
   };
+
+
+
+
 
   // Reset data when switching students
   const resetStudentData = () => {
+    setGlobalState({});
     setMarks([]);
     setScores({});
     setHistory([]);
     setHistoryIndex(-1);
-    setUrl(null);
+  };
+
+  const handleCommentChange = (question, comment) => {
+    const questionKey = `${question.sectionName}-${question.questionNo}`;
+
+    setComments(prevComments => ({
+      ...prevComments,
+      [questionKey]: comment,
+    }));
+
+    saveToGlobalState(selectedStudent.id, page, marks, {
+      ...comments,
+      [questionKey]: comment,
+    });
   };
 
 
-  // Handle score change logic
   const handleScoreChange = (section, question, value) => {
-    const key = `${section.sectionName}-${question.questionNo}`;
     const maxScore = question.marks;
 
     if (parseFloat(value) > maxScore) {
@@ -109,24 +188,34 @@ export default function Home() {
       return;
     }
 
-    setScores((prevScores) => {
-      const updatedScores = { ...prevScores, [key]: value };
-      addHistoryState(marks, updatedScores); // Save state for undo/redo
+    const updatedScores = {
+      ...scores,
+      [`${section.sectionName}-${question.questionNo}`]: value,
+    };
 
-      return updatedScores;
-    });
+    setScores(updatedScores);
+    synchronizeState(marks, updatedScores);
+  };
+  const synchronizeState = (updatedMarks, updatedScores) => {
+    setMarks(updatedMarks);
+    setScores(updatedScores);
 
-    // Save current state to localStorage
-    saveToLocalStorage(selectedStudent.id, 0, marks, scores); // Assuming page 1 for example
+    saveToGlobalState(selectedStudent.id, page, updatedMarks, comments);
   };
 
-  // Save the current state to localStorage
-  const saveToLocalStorage = (studentId, page, marks, scores) => {
-    const stateToSave = { marks, scores };
-    localStorage.setItem(`student_${studentId}_page_${page}`, JSON.stringify(stateToSave));
+
+  const saveToGlobalState = (studentId, page, marks, updatedComments) => {
+    setGlobalState(prevState => ({
+      ...prevState,
+      [studentId]: {
+        ...prevState[studentId],
+        marks: { ...marks },
+        comments: { ...updatedComments },
+      },
+    }));
   };
 
-  // Handle image click for marking
+
   const handleImageClick = (e) => {
     if (!selectedQuestion) {
       alert("Please select a question first before marking.");
@@ -143,98 +232,120 @@ export default function Home() {
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     const questionKey = `${selectedQuestion.sectionName}-${selectedQuestion.questionNo}`;
-    const newMarkValue = (parseFloat(scores[questionKey] || 0) + parseFloat(selectedLabel)).toFixed(2);
+    let updatedMarks = { ...marks };
+    let newScores = { ...scores };
 
-    if (newMarkValue > selectedQuestion.marks) {
-      alert(`The total score (${newMarkValue}) exceeds the maximum score (${selectedQuestion.marks}) for this question.`);
-      return;
+    // Handle visual-only labels
+    if (selectedLabel === "correct" || selectedLabel === "wrong") {
+      const pageMarks = marks[page] || [];
+      const newMarksForPage = [
+        ...pageMarks,
+        { questionKey, label: selectedLabel, x: x.toFixed(2), y: y.toFixed(2) },
+      ];
+      updatedMarks = { ...marks, [page]: newMarksForPage };
+    } else {
+      // Numerical label logic
+      const newMarkValue = (
+        parseFloat(scores[questionKey] || 0) + parseFloat(selectedLabel)
+      ).toFixed(2);
+
+      if (newMarkValue > selectedQuestion.marks) {
+        alert(
+          `The total score (${newMarkValue}) exceeds the maximum score (${selectedQuestion.marks}) for this question.`
+        );
+        return;
+      }
+
+      const pageMarks = marks[page] || [];
+      const newMarksForPage = [
+        ...pageMarks,
+        { questionKey, label: selectedLabel, x: x.toFixed(2), y: y.toFixed(2) },
+      ];
+
+      updatedMarks = { ...marks, [page]: newMarksForPage };
+      newScores = { ...scores, [questionKey]: newMarkValue };
     }
 
-    const newMarks = [
-      ...marks,
-      {
-        questionKey,
-        label: selectedLabel,
-        x: x.toFixed(2),
-        y: y.toFixed(2),
-      },
-    ];
-
-    setMarks(newMarks);
-    handleScoreChange({ sectionName: selectedQuestion.sectionName }, selectedQuestion, newMarkValue);
+    synchronizeState(updatedMarks, newScores);
     setSelectedLabel(null);
-    addHistoryState(newMarks, scores); // Save state for undo/redo
+    addHistoryState(updatedMarks, newScores);
   };
 
-  // Save history state for undo/redo
-  const addHistoryState = (newMarks, newScores) => {
-    // When new action is performed, truncate redo history if it's not at the end
+  const handleMarkRemove = (e, index, mark) => {
+    e.stopPropagation();
+
+    const pageMarks = [...(marks[page] || [])];
+    const newPageMarks = pageMarks.filter((_, i) => i !== index);
+
+    const updatedScore = parseFloat(scores[mark.questionKey] || 0) - parseFloat(mark.label);
+
+    const updatedMarks = { ...marks, [page]: newPageMarks };
+    const updatedScores = {
+      ...scores,
+      [mark.questionKey]: updatedScore > 0 ? updatedScore.toFixed(2) : "",
+    };
+
+    synchronizeState(updatedMarks, updatedScores);
+    addHistoryState(updatedMarks, updatedScores);
+  };
+
+  const addHistoryState = (updatedMarks, updatedScores) => {
     const updatedHistory = history.slice(0, historyIndex + 1);
-
-    // Add the new state to the history
-    updatedHistory.push({ marks: newMarks, scores: newScores });
-
-    // Set the new history and reset the historyIndex to the latest state
+    updatedHistory.push({ marks: { ...updatedMarks }, scores: { ...updatedScores } });
     setHistory(updatedHistory);
     setHistoryIndex(updatedHistory.length - 1);
   };
 
-  // Remove a mark
-  const handleMarkRemove = (e, index, mark) => {
-    e.stopPropagation();
-    const newMarks = marks.filter((_, i) => i !== index);
 
-    const updatedScore = parseFloat(scores[mark.questionKey] || 0) - parseFloat(mark.label);
-
-    setMarks(newMarks);
-    setScores((prevScores) => {
-      const updatedScores = {
-        ...prevScores,
-        [mark.questionKey]: updatedScore > 0 ? updatedScore.toFixed(2) : "",
+  const updateGlobalStateToBackend = useCallback(async () => {
+    try {
+      const payload = {
+        ...globalState,
+        [selectedStudent.id]: {
+          ...globalState[selectedStudent.id],
+          overallComment,
+        },
       };
-      addHistoryState(newMarks, updatedScores); // Save state for undo/redo
-      return updatedScores;
-    });
+      await UpdateScoresByDigitalEvaluator(id,selectedStudent.id, payload);
+      console.log("Global state successfully sent to the backend.");
+    } catch (error) {
+      console.error("Failed to send global state to the backend:", error);
+    }
+  }, [globalState, overallComment,student]);
 
-    // Save current state to localStorage after mark removal
-    saveToLocalStorage(selectedStudent.id, 0, newMarks, scores);
-  };
+
+  useEffect(() => {
+    if (globalState && Object.keys(globalState).length > 0) {
+      updateGlobalStateToBackend();
+    } else {
+      console.warn("Global state is empty, skipping backend update.");
+    }
+  }, [globalState, updateGlobalStateToBackend]);
+
   const undo = () => {
     if (historyIndex > 0) {
-      // Move one step back in the history
       const prevState = history[historyIndex - 1];
-
-      // Update marks and scores based on the previous state
       setMarks(prevState.marks);
       setScores(prevState.scores);
-
-      // Update the history index
+      setComments(prevState.comments || {}); // Restore comments
+      saveToGlobalState(selectedStudent.id, page, prevState.marks, prevState.scores, prevState.comments || {});
       setHistoryIndex(historyIndex - 1);
     } else {
       alert("No more undo history.");
     }
   };
 
-  // Redo functionality
   const redo = () => {
     if (historyIndex < history.length - 1) {
-      // Move one step forward in the history
       const nextState = history[historyIndex + 1];
-
-      // Update marks and scores based on the next state
       setMarks(nextState.marks);
       setScores(nextState.scores);
-
-      // Update the history index
+      setComments(nextState.comments || {}); // Restore comments
+      saveToGlobalState(selectedStudent.id, page, nextState.marks, nextState.scores, nextState.comments || {});
       setHistoryIndex(historyIndex + 1);
     } else {
       alert("No more redo history.");
     }
-  };
-
-  // Update student assignments after marking update
-  const updateStudentAssignments = () => {
-    updateAssignmentStudents(id, selectedStudent, marks, scores); // Method to update the assignment with the current marks and scores
   };
 
 
@@ -284,17 +395,19 @@ export default function Home() {
               </Button></Tooltip>
             <Tooltip title="Right">
               <Button
-                variant={"contained"}
-                // onClick={() => setToolSelected(tool)}
+
+                key={"correct"}
+                variant={selectedLabel === "correct" ? "contained" : "outlined"}
+                onClick={() => setSelectedLabel("correct")}
                 color="success"
               >
                 <DoneIcon />
               </Button></Tooltip>
             <Tooltip title="Wrong">
               <Button
-                variant={"contained"}
-                // onClick={() => setToolSelected(tool)}
-
+                key={"wrong"}
+                variant={selectedLabel === "wrong" ? "contained" : "outlined"}
+                onClick={() => setSelectedLabel("wrong")}
                 color="error"
               >
                 <ClearIcon />
@@ -351,7 +464,11 @@ export default function Home() {
                 <InputLabel id="student-select-label">Student</InputLabel>
                 <Select
                   labelId="student-select-label"
-                  onChange={(e) => setStudent(e.target.value)}
+                  onChange={(e) => {
+                    setStudent(e.target.value);
+                    setPage(undefined);
+                    resetStudentData();
+                  }}
                   label="Student"
                 >
                   {assignments?.students?.map((student) => (
@@ -386,69 +503,86 @@ export default function Home() {
         <Box className="h-full p-4 flex-grow m-0 bg-[#F5F5F5] overflow-y-auto rounded-md shadow-md">
 
           <Box className="bg-white p-0 w-full">
-            {url ?
+            {page ?
               <div
                 style={{ position: "relative", width: "100%", cursor: "crosshair" }}
                 onClick={handleImageClick}
               >
                 <img
-                  src={url}
+                  src={page}
                   alt="Answer Script"
                   ref={imageRef}
                   className="w-full"
                   style={{ display: "block" }}
                 />
-                {marks.map((mark, index) => (
-                  <div
-                    key={index}
-                    title={`Label: ${mark.label}`}
-                    style={{
-                      position: "absolute",
-                      top: `${mark.y}%`,
-                      left: `${mark.x}%`,
-                      transform: "translate(-50%, -50%)",
-                      color: "white",
-                      backgroundColor: "rgba(0, 128, 0, 0.8)",
-                      width: "40px",
-                      height: "40px",
-                      borderRadius: "50%",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    onMouseEnter={() => setHoveredMark(index)} // Set hovered mark index
-                    onMouseLeave={() => setHoveredMark(null)} // Clear hovered mark index
-                  >
-                    {mark.label}
-                    {/* Display X symbol when hovered */}
-                    {hoveredMark === index && (
-                      <span
-                        onClick={(e) => handleMarkRemove(e, index, mark)}
-                        style={{
-                          position: "absolute",
-                          top: "-8px",
-                          right: "-8px",
-                          backgroundColor: "white",
-                          color: "red",
-                          borderRadius: "50%",
-                          width: "18px",
-                          height: "18px",
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                          display: "flex", // Ensures centering
-                          alignItems: "center", // Vertically centers the content
-                          justifyContent: "center", // Horizontally centers the content
-                          boxShadow: "0 0 2px rgba(0, 0, 0, 0.2)", // Adds a subtle shadow
-                        }}
-                        title="Remove Mark"
-                      >
-                        ✖
-                      </span>
-                    )}
-                  </div>
-                ))}
+                {page && marks[page] ? (
+                  marks[page].map((mark, index) => (
+                    <div
+                      key={index}
+                      title={`Label: ${mark.label}`}
+                      style={{
+                        position: "absolute",
+                        top: `${mark.y}%`,
+                        left: `${mark.x}%`,
+                        transform: "translate(-50%, -50%)",
+                        color: "white",
+                        backgroundColor: mark.label === "correct"
+                          ? "rgba(0, 128, 0, 0.8)" // Green for correct
+                          : mark.label === "wrong"
+                            ? "rgba(255, 0, 0, 0.8)" // Red for wrong
+                            : "rgba(0, 128, 0, 0.8)", // Default green for numeric marks
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                      onMouseEnter={() => setHoveredMark(index)} // Set hovered mark index
+                      onMouseLeave={() => setHoveredMark(null)} // Clear hovered mark index
+                    >
+                      {/* Display the appropriate content based on the label */}
+                      {mark.label === "correct" ? (
+                        <DoneIcon style={{ fontSize: "24px", color: "white" }} />
+                      ) : mark.label === "wrong" ? (
+                        <ClearIcon style={{ fontSize: "24px", color: "white" }} />
+                      ) : (
+                        mark.label // Numeric label
+                      )}
+
+                      {/* Display X symbol when hovered */}
+                      {hoveredMark === index && (
+                        <span
+                          onClick={(e) => handleMarkRemove(e, index, mark)}
+                          style={{
+                            position: "absolute",
+                            top: "-8px",
+                            right: "-8px",
+                            backgroundColor: "white",
+                            color: "red",
+                            borderRadius: "50%",
+                            width: "18px",
+                            height: "18px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            display: "flex", // Ensures centering
+                            alignItems: "center", // Vertically centers the content
+                            justifyContent: "center", // Horizontally centers the content
+                            boxShadow: "0 0 2px rgba(0, 0, 0, 0.2)", // Adds a subtle shadow
+                          }}
+                          title="Remove Mark"
+                        >
+                          ✖
+                        </span>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  ""
+                )}
+
               </div> : <Typography className="p-2" variant="h5">Select Student and Paper</Typography>}
 
           </Box>
@@ -493,95 +627,118 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {assignments?.assignmentStructure.map((section, sectionIndex) => (
-                <>
-                  {/* Section Header */}
-                  <tr key={`section-${sectionIndex}`} className="bg-green-200">
-                    <td colSpan="4" className="p-1 font-semibold text-green-800">
-                      {section.sectionName}
-                    </td>
-                  </tr>
-                  {/* Section Questions */}
-                  {section.questions.map((question, questionIndex) => (
-                    <tr key={`question-${sectionIndex}-${questionIndex}`} className="hover:bg-green-50">
-                      <td className="p-1 text-center">{section.sectionName}</td>
-                      <td className="p-1">
-                        <Button
-                          color={
-                            selectedSection === section && selectedStudent === student
-                              ? "success"
-                              : "inherit"
-                          }
-
-                          variant={selectedSection === section && selectedStudent === student && selectedQuestion.questionNo === question.questionNo ? "contained" : "outlined"}
-                          className={`rounded-full ${selectedSection === section && selectedStudent === student
-                            ? "bg-green-500 text-white"
-                            : "text-green-600"
-                            }`}
-                          onClick={() => {
-                            setSelectedSection(section);
-                            setSelectedStudent(student);
-                            setSelectedQuestion({ ...question, sectionName: section.sectionName });
-
-                          }}
-                        >
-                          {section.sectionName}.{question.questionNo}
-                        </Button>
-                      </td>
-                      {/* Scored Marks Input */}
-                      <td className="p-1 text-center">
-                        <input
-                          type="number"
-                          className="w-full border border-green-300 rounded p-1 text-center"
-                          value={scores[`${section.sectionName}-${question.questionNo}`] || ""}
-                          onChange={(e) =>
-                            handleScoreChange(section, question, e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="p-1 text-center">{question.marks}</td>
-                    </tr>
-                  ))}
-                </>
-              ))}
-            </tbody>
-            <tfoot className="bg-green-100 sticky bottom-0">
-              <tr>
-                <td colSpan="2" className="p-1 font-semibold text-right">
-                  Total Marks:
-                </td>
-                <td className="p-1 text-center font-semibold">
-                  {Object.values(scores).reduce((sum, score) => sum + parseFloat(score || 0), 0)}
-                </td>
-                <td className="p-1 text-center font-semibold">
-                  {assignments?.assignmentStructure.reduce(
-                    (totalMax, section) =>
-                      totalMax +
-                      section.questions.reduce(
-                        (sectionMax, question) => sectionMax + question.marks,
-                        0
-                      ),
-                    0
-                  )}
-                </td>
-              </tr>
-            </tfoot>
+  {assignments?.assignmentStructure.map((section, sectionIndex) => (
+    <>
+      {/* Section Header */}
+      <tr key={`section-${sectionIndex}`} className="bg-green-200">
+        <td colSpan="4" className="p-1 font-semibold text-green-800">
+          {section.sectionName}
+        </td>
+      </tr>
+      {/* Section Questions */}
+      {section.questions.map((question, questionIndex) => (
+        <tr key={`question-${sectionIndex}-${questionIndex}`} className="hover:bg-green-50">
+          <td className="p-1 text-center">{section.sectionName}</td>
+          <td className="p-1">
+            <Button
+              color={
+                selectedSection === section &&
+                selectedStudent === student
+                  ? "success"
+                  : "inherit"
+              }
+              variant={
+                selectedSection === section &&
+                selectedStudent === student &&
+                selectedQuestion.questionNo === question.questionNo
+                  ? "contained"
+                  : "outlined"
+              }
+              className={`rounded-full ${
+                selectedSection === section && selectedStudent === student
+                  ? "bg-green-500 text-white"
+                  : "text-green-600"
+              }`}
+              onClick={() => {
+                setSelectedSection(section);
+                setSelectedStudent(student);
+                setSelectedQuestion({ ...question, sectionName: section.sectionName });
+              }}
+            >
+              {section.sectionName}.{question.questionNo}
+            </Button>
+          </td>
+          {/* Scored Marks Input */}
+          <td className="p-1 text-center">
+            <input
+              type="number"
+              className="w-full border border-green-300 rounded p-1 text-center"
+              value={scores[`${section.sectionName}-${question.questionNo}`] || 0} // Use 0 as default value
+              onChange={(e) =>
+                handleScoreChange(section, question, e.target.value)
+              }
+            />
+          </td>
+          <td className="p-1 text-center">{question.marks}</td>
+        </tr>
+      ))}
+    </>
+  ))}
+</tbody>
+<tfoot className="bg-green-100 sticky bottom-0">
+  <tr>
+    <td colSpan="2" className="p-1 font-semibold text-right">
+      Total Marks:
+    </td>
+    <td className="p-1 text-center font-semibold">
+      {/* Calculate total scored marks */}
+      {Object.values(scores).reduce((sum, score) => sum + parseFloat(score || 0), 0)}
+    </td>
+    <td className="p-1 text-center font-semibold">
+      {/* Calculate total maximum marks */}
+      {assignments?.assignmentStructure.reduce((totalMax, section) =>
+        totalMax + section.questions.reduce((sectionMax, question) => sectionMax + question.marks, 0),
+        0
+      )}
+    </td>
+  </tr>
+</tfoot>
           </table>
 
         </div>
 
-        {/* Comment Box */}
+        {/* Question Comment Box */}
+        {selectedSection && selectedQuestion ? <div className="mb-4">
+          <Typography
+            variant="subtitle1"
+            className="mb-2 text-green-600 font-bold "
+          >
+            Comment For {selectedSection.sectionName} -Q {selectedQuestion.questionNo}
+          </Typography>
+          <textarea
+            className="w-full p-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            rows="2"
+            placeholder={`Comment for ${selectedQuestion.sectionName} - Q${selectedQuestion.questionNo}`}
+            value={comments[`${selectedQuestion.sectionName}-${selectedQuestion.questionNo}`] || ""}
+            onChange={(e) => handleCommentChange(selectedQuestion, e.target.value)}
+          />
+        </div> : ""}
+
+
+        {/* OverAll Comment Box */}
         <div className="mb-4">
           <Typography
             variant="subtitle1"
             className="mb-2 text-green-600 font-bold "
           >
-            Comments
+            Suggestions / Recommendations for {student?.name}
           </Typography>
           <textarea
             className="w-full p-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            rows="4"
-            placeholder="Write your comment here..."
+            rows="2"
+            placeholder="Enter your overall performance comment here..."
+            value={overallComment}
+            onChange={(e) => handleOverallCommentChange(e.target.value)}
           />
         </div>
 
@@ -598,10 +755,13 @@ export default function Home() {
               student?.answerScript?.map((paper, index) => (
                 <Button
                   key={paper.id || index}
-                  variant="outlined"
+                  variant={page === paper ? "contained" : "outlined"}
                   className="mx-1 my-1"
                   value={paper}
-                  onClick={(e) => setUrl(e.target.value)}
+                  onClick={() => {
+                    setPage(undefined);
+                    setPage(paper)
+                  }}
                 >
                   {index}
                 </Button>

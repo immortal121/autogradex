@@ -9,7 +9,7 @@ const assignmentSchema = new mongoose.Schema({
 
   questionPaper: [{ type: String }], // URLs of uploaded question paper PDFs
   keyAnswerScript: [{ type: String }], // URLs of uploaded key answer scripts
-  MaxMarks:[{type:Number,required:true}],
+  MaxMarks:{type:Number,required:true},
   assignmentStructure: [
     {
       sectionName: String, // Section I, Section II, etc.
@@ -36,26 +36,28 @@ const assignmentSchema = new mongoose.Schema({
       },
       uploaded: { type: Boolean, default: false },
       evaluatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Evaluator's ID
-      marksScored: { type: Number }, // Total marks scored
+      marksScored: { type: Number }, // Total marks 
       marksBreakdown: [
         {
-          section: String, // Section name (e.g., Section I)
-          questionNo: String, // Question number
+          page: { type: String }, // URL of the specific page
           labels: [
-            {
+            { 
+              sectionName: { type: String }, // Label name (e.g., "1 mark", "3 marks")
+              questionNo: { type: String }, // Label name (e.g., "1 mark", "3 marks")
               labelName: { type: String }, // Label name (e.g., "1 mark", "3 marks")
               marksGiven: { type: Number }, // Marks assigned for this label
               x: { type: Number }, // X-coordinate for the label
               y: { type: Number }, // Y-coordinate for the label
-              comment: { type: String }, // Comment specific to this label
             },
           ],
-          totalMarksGiven: { type: Number }, // Total marks for this question
-          aiEvaluator: { type: Boolean, default: false }, // Whether AI evaluated the question
-          comment: { type: String }, // Overall comment for the question
+          comments:[{
+            sectionName: { type: String }, // Label name (e.g., "1 mark", "3 marks")
+            questionNo: { type: String }, // Label name (e.g., "1 mark", "3 marks")  
+            comment:{type:String},
+          }]
         },
       ],
-      comments: { type: String }, // Overall evaluation comments for the student
+      comment: { type: String }, // Overall evaluation comments for the student
     },
   ],
   status: {
@@ -70,3 +72,5 @@ const assignmentSchema = new mongoose.Schema({
 });
 
 export default mongoose.model('Assignment', assignmentSchema);
+ 
+

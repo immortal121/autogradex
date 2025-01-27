@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -37,283 +37,270 @@ export default function Home() {
 
   const [lmenu, setLmenu] = useState(false); // Controls left bar visibility on small screens
   const [rmenu, setRmenu] = useState(false); // Placeholder for right bar toggle
-  const [student, setStudent] = useState([]);
-  const [url, setUrl] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [marks, setMarks] = useState([]); // Store marks for the student's page
-  const [scores, setScores] = useState({}); // Store scores for the student's assignment
-  const [history, setHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(1);
-  const { assignments, getFilteredAssignment, updateAssignmentStudents } = useContext(MainContext);
-  const [selectedQuestion, setSelectedQuestion] = useState(null);
+
+  // data variables
+  // context
+  const { getFilteredAssignment, getAssignmentStudentById, UpdateScoresByDigitalEvaluator } = useContext(MainContext);
+
+  // student
+
+  const [studentId, setStudentId] = useState('');
+  const [student, setStudent] = useState({});
+
+
+  const [lstudent, setLstudent] = useState({});
+  // assignments
+  const [assignment, setAssignment] = useState({});
+
+
+  // marking
+
+  const [selectedQuestion, setSelectedQuestion] = useState();
+  const [selectedSection, setSelectedSection] = useState();
   const [selectedLabel, setSelectedLabel] = useState();
-  const [selectedSection, setSelectedSection] = useState(null);
   const [hoveredMark, setHoveredMark] = useState();
-  const [globalState, setGlobalState] = useState({});
-
   const imageRef = useRef();
-
   const marksLabels = [
     0.5,
     ...Array.from({ length: 11 }, (_, i) => i), // "0" to "10"
   ];
+  const [page, setPage] = useState('');
 
-  const tools = ["Undo", "Redo", "Tick", "Wrong"];
+  // history
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(1);
 
-  // const [data,setData] = useState([{}]);
+  // update
 
-  const [update,setUpdate] = useState(false);
+  // methods
 
-  // Fetch assignment details and students on page load
   useEffect(() => {
     const fetchData = async () => {
       const assignmentData = await getFilteredAssignment(id);
-      setStudent(assignmentData.students || []); // Store students data
+      setAssignment(assignmentData);
     };
     fetchData();
-  }, [id,update]);
-
+  }, [id]);
 
   useEffect(() => {
-    console.log("global state :"+globalState);
-    resetStudentData();
-    // loadStudentPageData(student.id, 0);
-    setUpdate(!update);
-  }, [url]);
+    const fetchData = async () => {
+      if (studentId) {
+        const assignmentData = await getAssignmentStudentById(id, studentId);
+        setStudent(assignmentData);
+      }
+    };
+    fetchData();
+  }, [studentId]);
 
 
+  // Table
+  const calculateTotalMarks = (sectionName, questionNo) => {
+    if (!student) return 0;
 
-  // Load data from localStorage for a specific student and page
-  // const loadStudentPageData = (studentId, page) => {
-  //   const savedData = localStorage.getItem(`student_${studentId}_page_${page}`);
+    let total = 0;
+    student?.marksBreakdown?.forEach((breakdown) => {
+      breakdown.labels.forEach((label) => {
+        if (label.sectionName === sectionName && label.questionNo === questionNo) {
+          total += label.marksGiven;
+        }
+      });
+    });
 
-  //   if (savedData) {
-  //     const parsedData = JSON.parse(savedData);
-  //     setMarks(parsedData.marks || []);
-  //     setScores(parsedData.scores || {});
-  //   }
-  // };
-
-  // Reset data when switching students
-  const resetStudentData = () => {
-    setMarks([]);
-    setScores({});
-    setHistory([]);
-    setHistoryIndex(-1);
+    return total;
   };
+  const handleScoreChange = (sectionName, questionNo, value) => {
+    if (!student) return;
 
+    // Get the selected question's maximum marks from the assignment structure
+    const questionMaxMarks = assignment.assignmentStructure
+      .flatMap(section => section.questions
+        .filter(question => section.sectionName === sectionName && question.questionNo === questionNo)
+      )
+      .map(question => question.marks)[0];
 
-  // Handle score change logic
-  const handleScoreChange = (section, question, value) => {
-    const key = `${section.sectionName}-${question.questionNo}`;
-    const maxScore = question.marks;
-
-    if (parseFloat(value) > maxScore) {
-      alert(`The entered score (${value}) exceeds the maximum score (${maxScore}) for this question.`);
+    if (parseFloat(value) > questionMaxMarks) {
+      alert(`The entered value (${value}) exceeds the maximum score (${questionMaxMarks}) for this question.`);
       return;
     }
 
-    setScores((prevScores) => {
-      const updatedScores = { ...prevScores, [key]: value };
-      addHistoryState(marks, updatedScores); // Save state for undo/redo
+    let labelExists = false;
 
-      return updatedScores;
+    // Create a deep copy of the student's marksBreakdown
+    const updatedMarksBreakdown = student.marksBreakdown.map((breakdown) => {
+      // Create a deep copy of the labels array
+      const updatedLabels = breakdown.labels.map((label) => {
+        if (label.sectionName === sectionName && label.questionNo === questionNo) {
+          labelExists = true;
+          // Return a new object with the updated marksGiven value
+          return { ...label, marksGiven: parseFloat(value) };
+        }
+        return label;
+      });
+
+      // If the label doesn't exist, add it
+      if (!labelExists) {
+        updatedLabels.push({
+          sectionName,
+          questionNo,
+          labelName: 'No Label', // Default label name or update as needed
+          marksGiven: parseFloat(value),
+          x: 0, // Default x-coordinate
+          y: 0, // Default y-coordinate
+        });
+      }
+
+      return { ...breakdown, labels: updatedLabels };
     });
 
-    // Save current state to localStorage
-    saveToGlobalState(selectedStudent.id, url, marks, scores); // Assuming page 1 for example
+    // Update the student state immutably
+    setStudent({ ...student, marksBreakdown: updatedMarksBreakdown });
   };
 
-  // Save the current state to localStorage
-  
-  const saveToGlobalState = (studentId, page, marks, scores) => {
-    setGlobalState((prevState) => ({
-      ...prevState,
-      [studentId]: {
-        ...prevState[studentId],
-        [page]: {
-          marks: { ...marks },
-          scores: { ...scores },
-        },
-      },
-    }));
-  };
-  
-
-  // Handle image click for marking
-  // const handleImageClick = (e) => {
-  //   if (!selectedQuestion) {
-  //     alert("Please select a question first before marking.");
-  //     return;
-  //   }
-
-  //   if (!selectedLabel) {
-  //     alert("Please select a Mark / Label first before marking.");
-  //     return;
-  //   }
-
-  //   const rect = imageRef.current.getBoundingClientRect();
-  //   const x = ((e.clientX - rect.left) / rect.width) * 100;
-  //   const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-  //   const questionKey = `${selectedQuestion.sectionName}-${selectedQuestion.questionNo}`;
-  //   const newMarkValue = (parseFloat(scores[questionKey] || 0) + parseFloat(selectedLabel)).toFixed(2);
-
-  //   if (newMarkValue > selectedQuestion.marks) {
-  //     alert(`The total score (${newMarkValue}) exceeds the maximum score (${selectedQuestion.marks}) for this question.`);
-  //     return;
-  //   }
-
-  //   const newMarks = [
-  //     ...marks,
-  //     {
-  //       questionKey,
-  //       label: selectedLabel,
-  //       x: x.toFixed(2),
-  //       y: y.toFixed(2),
-  //     },
-  //   ];
-
-  //   setMarks(newMarks);
-  //   handleScoreChange({ sectionName: selectedQuestion.sectionName }, selectedQuestion, newMarkValue);
-  //   setSelectedLabel(null);
-  //   addHistoryState(newMarks, scores); // Save state for undo/redo
-  // };
-
-  // Save history state for undo/redo
-  
+  // Image 
   const handleImageClick = (e) => {
     if (!selectedQuestion) {
       alert("Please select a question first before marking.");
       return;
     }
-  
+
     if (!selectedLabel) {
       alert("Please select a Mark / Label first before marking.");
       return;
     }
-  
+
     const rect = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-  
-    const questionKey = `${selectedQuestion.sectionName}-${selectedQuestion.questionNo}`;
-    const newMarkValue = (parseFloat(scores[questionKey] || 0) + parseFloat(selectedLabel)).toFixed(2);
-  
-    if (newMarkValue > selectedQuestion.marks) {
-      alert(`The total score (${newMarkValue}) exceeds the maximum score (${selectedQuestion.marks}) for this question.`);
+
+    // Get the selected question's maximum marks from the assignment structure
+    const questionMaxMarks = assignment.assignmentStructure
+      .flatMap(section => section.questions
+        .filter(question => section.sectionName === selectedSection && question.questionNo === selectedQuestion)
+      )
+      .map(question => question.marks)[0];
+
+    if (!questionMaxMarks) {
+      alert("Unable to find the maximum marks for the selected question.");
       return;
     }
-  
-    const pageMarks = marks[url] || []; // Retrieve existing marks for the current page
-    const newMarksForPage = [
-      ...pageMarks,
-      {
-        questionKey,
-        label: selectedLabel,
-        x: x.toFixed(2),
-        y: y.toFixed(2),
-      },
-    ];
-  
-    const updatedMarks = {
-      ...marks,
-      [url]: newMarksForPage, // Update marks for the current page
-    };
-  
-    setMarks(updatedMarks);
-    handleScoreChange({ sectionName: selectedQuestion.sectionName }, selectedQuestion, newMarkValue);
-    setSelectedLabel(null);
-    addHistoryState(updatedMarks, scores); // Save state for undo/redo
-  };
 
-  const addHistoryState = (newMarks, newScores) => {
-    // Truncate redo history if a new action is performed
-    const updatedHistory = history.slice(0, historyIndex + 1);
-  
-    // Add the new state to the history
-    updatedHistory.push({ marks: { ...newMarks }, scores: { ...newScores } });
-  
-    // Update history and reset the historyIndex to the latest state
-    setHistory(updatedHistory);
-    setHistoryIndex(updatedHistory.length - 1);
-  };
-  
-  // Remove a mark
-  const handleMarkRemove = (e, index, mark) => {
-    e.stopPropagation();
-  
-    // Create a copy of the marks for the current page
-    const pageMarks = [...(marks[url] || [])];
-  
-    // Remove the specific mark by index
-    const newPageMarks = pageMarks.filter((_, i) => i !== index);
-  
-    // Update the score for the affected question
-    const updatedScore = parseFloat(scores[mark.questionKey] || 0) - parseFloat(mark.label);
-  
-    // Update marks globally
-    const newMarks = {
-      ...marks,
-      [url]: newPageMarks,
+    // Calculate the existing total marks for the selected section and question
+    const existingMarks = student.marksBreakdown
+      .filter(breakdown => breakdown.page === page)
+      .flatMap(breakdown => breakdown.labels)
+      .filter(label => label.sectionName === selectedSection && label.questionNo === selectedQuestion)
+      .reduce((total, label) => total + label.marksGiven, 0);
+
+    const newLabelMarks = selectedLabel === "correct" || selectedLabel === "wrong" ? 0 : parseFloat(selectedLabel);
+
+    const marksGiven = parseFloat(existingMarks) + newLabelMarks;
+    if (marksGiven > questionMaxMarks) {
+      alert(`The entered value (${marksGiven}) exceeds the maximum score (${questionMaxMarks}) for this question.`);
+      return;
+    }
+
+    const newLabel = {
+      sectionName: selectedSection,
+      questionNo: selectedQuestion,
+      labelName: selectedLabel,
+      marksGiven: newLabelMarks,
+      x: x.toFixed(2),
+      y: y.toFixed(2),
     };
-  
-    setMarks(newMarks);
-    setScores((prevScores) => {
-      const updatedScores = {
-        ...prevScores,
-        [mark.questionKey]: updatedScore > 0 ? updatedScore.toFixed(2) : "",
-      };
-  
-      // Save state for undo/redo
-      addHistoryState(newMarks, updatedScores);
-      return updatedScores;
+
+    // Create a deep copy of the student's marksBreakdown
+    const updatedMarksBreakdown = student.marksBreakdown.map((breakdown) => {
+      if (breakdown.page === page) {
+        // Check if the label already exists
+        const labelExists = breakdown.labels.some((label) =>
+          label.sectionName === selectedSection &&
+          label.questionNo === selectedQuestion &&
+          label.labelName === selectedLabel
+        );
+
+        if (!labelExists) {
+          return {
+            ...breakdown,
+            labels: [...breakdown.labels, newLabel],
+          };
+        }
+
+        return breakdown;
+      }
+
+      return breakdown;
     });
-  
-    // Save current state to localStorage after mark removal
-    saveToGlobalState(selectedStudent.id, page, newMarks, scores);
-  };
-  
-  // Undo functionality
-  const undo = () => {
-    if (historyIndex > 0) {
-      // Move one step back in the history
-      const prevState = history[historyIndex - 1];
-  
-      // Update marks and scores based on the previous state
-      setMarks(prevState.marks);
-      setScores(prevState.scores);
-  
-      // Update the history index
-      setHistoryIndex(historyIndex - 1);
-    } else {
-      alert("No more undo history.");
-    }
-  };
-  
-  // Redo functionality
-  const redo = () => {
-    if (historyIndex < history.length - 1) {
-      // Move one step forward in the history
-      const nextState = history[historyIndex + 1];
-  
-      // Update marks and scores based on the next state
-      setMarks(nextState.marks);
-      setScores(nextState.scores);
-  
-      // Update the history index
-      setHistoryIndex(historyIndex + 1);
-    } else {
-      alert("No more redo history.");
-    }
-  };
-  
-  // Update student assignments after marking update
-  const updateStudentAssignments = () => {
-    updateAssignmentStudents(id, selectedStudent, marks, scores); // Method to update the assignment with the current marks and scores
-  };
-  console.log(marks[url]);
 
+    // If the page does not exist, add it with the new label
+    const pageExists = updatedMarksBreakdown.some((breakdown) => breakdown.page === page);
+    if (!pageExists) {
+      updatedMarksBreakdown.push({
+        page,
+        labels: [newLabel],
+        comments: [],
+      });
+    }
+
+    setStudent({ ...student, marksBreakdown: updatedMarksBreakdown });
+    setSelectedLabel(null);
+  };
+
+
+  const handleMarkRemove = (e, breakdownIndex, labelIndex) => {
+    e.stopPropagation();
+
+    const updatedMarksBreakdown = student.marksBreakdown.map((breakdown, index) => {
+      if (index === breakdownIndex) {
+        const updatedLabels = breakdown.labels.filter((_, i) => i !== labelIndex);
+        return { ...breakdown, labels: updatedLabels };
+      }
+      return breakdown;
+    });
+
+    setStudent({ ...student, marksBreakdown: updatedMarksBreakdown });
+  };
+
+
+  const handleCommentChange = (sectionName, questionNo, comment) => {
+    const updatedMarksBreakdown = student.marksBreakdown.map((breakdown) => {
+      if (breakdown.page === page) {
+        const existingCommentIndex = breakdown.comments.findIndex(
+          (cmt) => cmt.sectionName === sectionName && cmt.questionNo === questionNo
+        );
+
+        let updatedComments;
+        if (existingCommentIndex !== -1) {
+          // Update the existing comment
+          updatedComments = breakdown.comments.map((cmt, index) => {
+            if (index === existingCommentIndex) {
+              return { ...cmt, comment };
+            }
+            return cmt;
+          });
+        } else {
+          // Add a new comment if it doesn't exist
+          updatedComments = [
+            ...breakdown.comments,
+            { sectionName, questionNo, comment },
+          ];
+        }
+
+        return { ...breakdown, comments: updatedComments };
+      }
+      return breakdown;
+    });
+
+    setStudent({ ...student, marksBreakdown: updatedMarksBreakdown });
+  };
+
+  const handleOverallCommentChange = (overallComment) => {
+    setStudent({ ...student, comment: overallComment });
+  };
+
+  const handleStatus = (e) => {
+    setStudent({ ...student, evaluationStatus: e.target.value });
+  };
+  console.log(student?.evaluationStatus);
 
   return (
     <main className="flex bg-base-100 h-screen w-screen overflow-hidden m-0">
@@ -344,7 +331,7 @@ export default function Home() {
           </Typography>
           <div className="flex flex-wrap gap-2">
 
-            <Tooltip title="Redo">
+            {/* <Tooltip title="Redo">
               <Button
                 variant={"contained"}
                 onClick={redo}
@@ -358,20 +345,22 @@ export default function Home() {
                 onClick={undo}
               >
                 <UndoIcon />
-              </Button></Tooltip>
+              </Button></Tooltip>*/}
             <Tooltip title="Right">
               <Button
-                variant={"contained"}
-                // onClick={() => setToolSelected(tool)}
+
+                key={"correct"}
+                variant={selectedLabel === "correct" ? "contained" : "outlined"}
+                onClick={() => setSelectedLabel("correct")}
                 color="success"
               >
                 <DoneIcon />
               </Button></Tooltip>
             <Tooltip title="Wrong">
               <Button
-                variant={"contained"}
-                // onClick={() => setToolSelected(tool)}
-
+                key={"wrong"}
+                variant={selectedLabel === "wrong" ? "contained" : "outlined"}
+                onClick={() => setSelectedLabel("wrong")}
                 color="error"
               >
                 <ClearIcon />
@@ -419,20 +408,54 @@ export default function Home() {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="p" clasName="bg-white shadow m-2">Subject : <b>{assignments?.subject}</b> <br /> Exam : {assignments?.name}</Typography>
+            <Typography variant="p" clasName="bg-white shadow m-2">Subject : <b>{assignment?.subject}</b> <br /> Exam : {assignment?.name}</Typography>
 
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: "flex", alignItems: "center" }}>
 
+              <FormControl
+                variant="standard"
+                sx={{ m: 2, minWidth: 200 }}
+              >
+                <InputLabel id="student-select-label">Status</InputLabel>
+                <Select
+                  labelId="student-select-label"
+                  value={student?.evaluationStatus || ''} // Default to empty string if undefined
+                  onChange={handleStatus}
+                  disabled={!student?.evaluationStatus} // Simplified condition
+                  sx={{
+                    backgroundColor: (student?.evaluationStatus === 'Evaluated' && 'green') ||
+                      (student?.evaluationStatus === 'Pending' && 'orange') ||
+                      (student?.evaluationStatus === 'Absent' && 'red'),
+                    color: 'white', // Ensures text is readable on colored backgrounds
+                  }}
+                >
+                  <MenuItem key={1} value="Absent">
+                    Absent
+                  </MenuItem>
+                  <MenuItem key={2} value="Pending">
+                    Pending
+                  </MenuItem>
+                  <MenuItem key={3} value="Evaluated">
+                    Evaluated
+                  </MenuItem>
+                </Select>
+
+              </FormControl>
               <FormControl variant="standard" sx={{ m: 2, minWidth: 200 }}>
                 <InputLabel id="student-select-label">Student</InputLabel>
                 <Select
                   labelId="student-select-label"
-                  onChange={(e) => setStudent(e.target.value)}
+                  onChange={(e) => {
+                    student ? UpdateScoresByDigitalEvaluator(id, student) : "";
+                    setStudentId(e.target.value);
+                    setPage(null);
+                    // resetStudentData();
+                  }}
                   label="Student"
                 >
-                  {assignments?.students?.map((student) => (
-                    <MenuItem key={student.id} value={student}>
+                  {assignment?.students?.map((student) => (
+                    <MenuItem key={student.id} value={student.id}>
                       {student.name}
                     </MenuItem>
                   ))}
@@ -463,69 +486,91 @@ export default function Home() {
         <Box className="h-full p-4 flex-grow m-0 bg-[#F5F5F5] overflow-y-auto rounded-md shadow-md">
 
           <Box className="bg-white p-0 w-full">
-            {url ?
+            {page ?
               <div
                 style={{ position: "relative", width: "100%", cursor: "crosshair" }}
                 onClick={handleImageClick}
               >
                 <img
-                  src={url}
+                  src={page}
                   alt="Answer Script"
                   ref={imageRef}
                   className="w-full"
                   style={{ display: "block" }}
                 />
-                {url && marks[url] ? (marks[url].map((mark, index) => (
-                  <div
-                    key={index}
-                    title={`Label: ${mark.label}`}
-                    style={{
-                      position: "absolute",
-                      top: `${mark.y}%`,
-                      left: `${mark.x}%`,
-                      transform: "translate(-50%, -50%)",
-                      color: "white",
-                      backgroundColor: "rgba(0, 128, 0, 0.8)",
-                      width: "40px",
-                      height: "40px",
-                      borderRadius: "50%",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    onMouseEnter={() => setHoveredMark(index)} // Set hovered mark index
-                    onMouseLeave={() => setHoveredMark(null)} // Clear hovered mark index
-                  >
-                    {mark.label}
-                    {/* Display X symbol when hovered */}
-                    {hoveredMark === index && (
-                      <span
-                        onClick={(e) => handleMarkRemove(e, index, mark)}
-                        style={{
-                          position: "absolute",
-                          top: "-8px",
-                          right: "-8px",
-                          backgroundColor: "white",
-                          color: "red",
-                          borderRadius: "50%",
-                          width: "18px",
-                          height: "18px",
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                          display: "flex", // Ensures centering
-                          alignItems: "center", // Vertically centers the content
-                          justifyContent: "center", // Horizontally centers the content
-                          boxShadow: "0 0 2px rgba(0, 0, 0, 0.2)", // Adds a subtle shadow
-                        }}
-                        title="Remove Mark"
-                      >
-                        ✖
-                      </span>
-                    )}
-                  </div>
-                ))):""}
+
+                {page && student?.marksBreakdown ? (
+                  student.marksBreakdown.map((breakdown, index) => (
+                    breakdown.page === page &&
+                    breakdown.labels.map((mark, labelIndex) => (
+                      (mark.x !== 0 || mark.y !== 0) && (
+                        <div
+                          key={labelIndex}
+                          title={`Label: ${mark.labelName}`}
+                          style={{
+                            position: "absolute",
+                            top: `${mark.y}%`,
+                            left: `${mark.x}%`,
+                            transform: "translate(-50%, -50%)",
+                            color: "white",
+                            backgroundColor: mark.labelName === "correct"
+                              ? "rgba(0, 128, 0, 0.8)" // Green for correct
+                              : mark.labelName === "wrong"
+                                ? "rgba(255, 0, 0, 0.8)" // Red for wrong
+                                : "rgba(0, 128, 0, 0.8)", // Default green for numeric marks
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                          onMouseEnter={() => setHoveredMark(labelIndex)} // Set hovered mark index
+                          onMouseLeave={() => setHoveredMark(null)} // Clear hovered mark index
+                        >
+                          {/* Display the appropriate content based on the label */}
+                          {mark.labelName === "correct" ? (
+                            <DoneIcon style={{ fontSize: "24px", color: "white" }} />
+                          ) : mark.labelName === "wrong" ? (
+                            <ClearIcon style={{ fontSize: "24px", color: "white" }} />
+                          ) : (
+                            mark.labelName // Numeric label
+                          )}
+
+                          {/* Display X symbol when hovered */}
+                          {hoveredMark === labelIndex && (
+                            <span
+                              onClick={(e) => handleMarkRemove(e, index, labelIndex)}
+                              style={{
+                                position: "absolute",
+                                top: "-8px",
+                                right: "-8px",
+                                backgroundColor: "white",
+                                color: "red",
+                                borderRadius: "50%",
+                                width: "18px",
+                                height: "18px",
+                                fontWeight: "bold",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                display: "flex", // Ensures centering
+                                alignItems: "center", // Vertically centers the content
+                                justifyContent: "center", // Horizontally centers the content
+                                boxShadow: "0 0 2px rgba(0, 0, 0, 0.2)", // Adds a subtle shadow
+                              }}
+                              title="Remove Mark"
+                            >
+                              ✖
+                            </span>
+                          )}
+                        </div>)
+                    ))
+                  ))
+                ) : (
+                  <></>
+                )}
+
               </div> : <Typography className="p-2" variant="h5">Select Student and Paper</Typography>}
 
           </Box>
@@ -570,7 +615,7 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {assignments?.assignmentStructure.map((section, sectionIndex) => (
+              {assignment?.assignmentStructure?.map((section, sectionIndex) => (
                 <>
                   {/* Section Header */}
                   <tr key={`section-${sectionIndex}`} className="bg-green-200">
@@ -585,21 +630,22 @@ export default function Home() {
                       <td className="p-1">
                         <Button
                           color={
-                            selectedSection === section && selectedStudent === student
+                            selectedSection === section.sectionName
                               ? "success"
                               : "inherit"
                           }
-
-                          variant={selectedSection === section && selectedStudent === student && selectedQuestion.questionNo === question.questionNo ? "contained" : "outlined"}
-                          className={`rounded-full ${selectedSection === section && selectedStudent === student
+                          variant={
+                            selectedSection === section.sectionName && selectedQuestion === question.questionNo
+                              ? "contained"
+                              : "outlined"
+                          }
+                          className={`rounded-full ${selectedSection === section.sectionName
                             ? "bg-green-500 text-white"
                             : "text-green-600"
                             }`}
                           onClick={() => {
-                            setSelectedSection(section);
-                            setSelectedStudent(student);
-                            setSelectedQuestion({ ...question, sectionName: section.sectionName });
-
+                            setSelectedSection(section.sectionName);
+                            setSelectedQuestion(question.questionNo);
                           }}
                         >
                           {section.sectionName}.{question.questionNo}
@@ -610,9 +656,9 @@ export default function Home() {
                         <input
                           type="number"
                           className="w-full border border-green-300 rounded p-1 text-center"
-                          value={scores[`${section.sectionName}-${question.questionNo}`] || ""}
+                          value={calculateTotalMarks(section.sectionName, question.questionNo)} // Use 0 as default value
                           onChange={(e) =>
-                            handleScoreChange(section, question, e.target.value)
+                            handleScoreChange(section.sectionName, question.questionNo, e.target.value)
                           }
                         />
                       </td>
@@ -628,16 +674,16 @@ export default function Home() {
                   Total Marks:
                 </td>
                 <td className="p-1 text-center font-semibold">
-                  {Object.values(scores).reduce((sum, score) => sum + parseFloat(score || 0), 0)}
+                  {/* Calculate total scored marks from marksBreakdown */}
+                  {student?.marksBreakdown?.reduce((totalScored, breakdown) =>
+                    totalScored + breakdown.labels.reduce((labelTotal, label) => labelTotal + (label.marksGiven || 0), 0),
+                    0
+                  )}
                 </td>
                 <td className="p-1 text-center font-semibold">
-                  {assignments?.assignmentStructure.reduce(
-                    (totalMax, section) =>
-                      totalMax +
-                      section.questions.reduce(
-                        (sectionMax, question) => sectionMax + question.marks,
-                        0
-                      ),
+                  {/* Calculate total maximum marks */}
+                  {assignment?.assignmentStructure?.reduce((totalMax, section) =>
+                    totalMax + section.questions.reduce((sectionMax, question) => sectionMax + question.marks, 0),
                     0
                   )}
                 </td>
@@ -647,19 +693,46 @@ export default function Home() {
 
         </div>
 
-        {/* Comment Box */}
+        {selectedSection && selectedQuestion ? <div className="mb-4">
+          <Typography
+            variant="subtitle1"
+            className="mb-2 text-green-600 font-bold "
+          >
+            Comment For {selectedSection} -Q {selectedQuestion}
+          </Typography>
+          <textarea
+            className="w-full p-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            rows="2"
+            placeholder={`Comment for ${selectedSection} - Q${selectedQuestion}`}
+            value={
+              student.marksBreakdown.find(b => b.page === page)?.comments.find(c => c.sectionName === selectedSection && c.questionNo === selectedQuestion)?.comment || ""
+            }
+            onChange={(e) => handleCommentChange(
+              selectedSection,
+              selectedQuestion,
+              e.target.value
+            )}
+          />
+
+        </div> : ""}
+
+
+        {/* OverAll Comment Box */}
         <div className="mb-4">
           <Typography
             variant="subtitle1"
             className="mb-2 text-green-600 font-bold "
           >
-            Comments
+            Recommendations for {student?.name}
           </Typography>
           <textarea
             className="w-full p-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            rows="4"
-            placeholder="Write your comment here..."
+            rows="2"
+            placeholder="Enter your overall performance comment here..."
+            value={student.comment ? student.comment : ""}
+            onChange={(e) => handleOverallCommentChange(e.target.value)}
           />
+
         </div>
 
         {/* Scrollable Pagination Section */}
@@ -675,10 +748,13 @@ export default function Home() {
               student?.answerScript?.map((paper, index) => (
                 <Button
                   key={paper.id || index}
-                  variant="outlined"
+                  variant={page === paper ? "contained" : "outlined"}
                   className="mx-1 my-1"
                   value={paper}
-                  onClick={(e) => setUrl(e.target.value)}
+                  onClick={() => {
+                    setPage('');
+                    setPage(paper)
+                  }}
                 >
                   {index}
                 </Button>

@@ -774,9 +774,6 @@ function Context({ children }: { children: React.ReactNode }) {
             const response = await axios(config);
             console.log(response);
             if (response) {
-                console.log("here ::)");
-                // const router = useRouter();
-                // router.push(`/digievaluator/${assignmentId}`);
                 window.location.href = `/digievaluator/${assignmentId}`;
 
             } else {
@@ -789,35 +786,63 @@ function Context({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const UpdateScoresByDigitalEvaluator = async (assignmentId, updateData) => {
+    const getAssignmentStudentById = async (assignmentId, studentId) => {
         try {
           const config = {
             method: "POST",
-            url: `${serverURL}/assignment/UpdateScoresByDigitalEvaluator`, // API endpoint for updating scores
+            url: `${serverURL}/assignment/getAssignmentStudentById`, // API endpoint for getting student data
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
               "Content-Type": "application/json",
             },
             data: {
-              assignmentId,
-              updateData,
+                assignmentId: assignmentId, // Assignment ID to identify the record
+                studentId:studentId,
+            },
+          };
+      
+          const response = await axios(config);
+      
+          if (response.data) {
+            return response.data; // Return student data if successful
+          } else {
+            console.error("Failed to fetch student data.");
+            return null; // Indicate failure
+          }
+        } catch (error) {
+          console.error("Error fetching student data:", error);
+          return null; // Indicate failure
+        }
+      };
+      
+      const UpdateScoresByDigitalEvaluator = async (id, students) => {
+        try {
+          const config = {
+            method: "POST",
+            url: `${serverURL}/assignment/UpdateWithDigitalEvaluator`, // API endpoint for updating scores
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              id,
+              students,
             },
           };
       
           // Send the request
           const response = await axios(config);
           if (response.data) {
-            toast.success("Scores updated successfully.");
-            return response.data; // Return updated assignment data
+            console.log("Scores updated successfully."); // Use console.log for debugging
           } else {
-            toast.error("Failed to update scores.");
+            console.error("Failed to update scores.");
           }
         } catch (error) {
           console.error("Error updating scores:", error);
-          toast.error("Failed to update scores.");
           throw error;
         }
       };
+      
       
     //pdf to image converter
     
@@ -920,7 +945,7 @@ function Context({ children }: { children: React.ReactNode }) {
                 //pdf to image
                 convertPDFToImage,
                 //evalutor
-                Evaluate,EvaluateWithDigital,UpdateScoresByDigitalEvaluator
+                Evaluate,EvaluateWithDigital,UpdateScoresByDigitalEvaluator,getAssignmentStudentById,
             }}
         >
             {children}

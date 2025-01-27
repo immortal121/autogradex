@@ -25,7 +25,7 @@ export default function AssignmentList() {
     // Navigate to the assignment detail page
     window.location.href = `/teacher/assignments/${assignmentId}`;
   };
-  const columns = ["name","subject","class","section","progress"];
+  const columns = ["name","subject","class","section","maxMarks","progress"];
     
   return (
     <>
