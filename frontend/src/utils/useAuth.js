@@ -35,12 +35,12 @@ const useAuth = () => {
           }
           break;
         case '2': // Teacher
-          if (!router.pathname.startsWith('/teacher') && !router.pathname.startsWith('/digilocker')) {
+          if (!router.pathname.startsWith('/teacher') && !router.pathname.startsWith('/digievaluator')) {
             router.push('/teacher');
           }
           break;
         case '1': // Admin
-          if (!router.pathname.startsWith('/admin')) {
+          if (!router.pathname.startsWith('/admin') && !router.pathname.startsWith('/digievaluator')) {
             router.push('/admin');
           }
           break;
